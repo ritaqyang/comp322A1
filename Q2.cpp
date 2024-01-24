@@ -3,6 +3,25 @@
 #include <cmath>   // for log10 and other mathematical functions
 #include <utility> // for std::pair
 
+//Helper funtion to get category 
+std::string getCategory( int bfp, int lowThreshold, int normalThreshold, int highThreshold)
+{
+
+    if (bfp < lowThreshold)
+    {
+        return "low";
+    }
+    else if (bfp < normalThreshold)
+    {
+        return "normal";
+    }
+    else if (bfp < highThreshold)
+    {
+        return "high";
+    }
+
+    return "undefined"; // Fallback return statement if none of the conditions are met
+}
 
 std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
 {
@@ -23,16 +42,36 @@ std::pair<int, std::string> get_bfp(double waist, double neck, double height, do
         return std::make_pair(-1, "Invalid gender");
     }
 
-    // Determine the associated group
-    // need to add more detailed categories for WHO table 
+    std::string category;
+    //for each age range, use helper function to get category accoring to theresholds
 
-    // Group conditions by age range then gender 
-    if (age >= 20 && age <= 39) {
 
-        if (gender  == "female") {
-
-            category = "low";
-
+    if (gender == "female"){
+        if (age >= 20 && age <= 39){
+            category = getCategory(bfp, 21, 33, 39); 
+        }
+        else if (age <= 59) {
+            //no need for lower bound since we don't get input under 20
+            category = getCategory(bfp, 23, 34, 40);
+        }
+        else {
+            category = getCategory(bfp, 24, 36, 42);
+        }
+    }
+    else if (gender == "male")
+    {
+        if (age >= 20 && age <= 39)
+        {
+            category = getCategory(bfp, 8, 20, 25);
+        }
+        else if (age <= 59)
+        {
+            // no need for lower bound since we don't get input under 20
+            category = getCategory(bfp, 11, 22, 28);
+        }
+        else
+        {
+            category = getCategory(bfp, 13, 25, 30);
         }
     }
 
