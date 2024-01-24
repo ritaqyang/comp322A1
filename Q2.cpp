@@ -43,37 +43,56 @@ std::pair<int, std::string> get_bfp(double waist, double neck, double height, do
     }
 
     std::string category;
-    //for each age range, use helper function to get category accoring to theresholds
+    //For each age range, use helper function to get category accoring to theresholds
+    //Get the thresholds first as variables, so it's more visualy clear for future uses and changes to the data
+    //Instead of the strucutre if .... then getcategory(bfp,21,33,39) 
 
+    int lowThreshold, normalThreshold, highThreshold;
 
-    if (gender == "female"){
-        if (age >= 20 && age <= 39){
-            category = getCategory(bfp, 21, 33, 39); 
+    if (gender == "female")
+    {
+        if (age <= 39)
+        { // 20-39 age range
+            lowThreshold = 21;
+            normalThreshold = 33;
+            highThreshold = 39;
         }
-        else if (age <= 59) {
-            //no need for lower bound since we don't get input under 20
-            category = getCategory(bfp, 23, 34, 40);
+        else if (age <= 59)
+        { // 40-59 age range
+            lowThreshold = 23;
+            normalThreshold = 34;
+            highThreshold = 40;
         }
-        else {
-            category = getCategory(bfp, 24, 36, 42);
+        else
+        { // 60+ age range
+            lowThreshold = 24;
+            normalThreshold = 36;
+            highThreshold = 42;
         }
     }
     else if (gender == "male")
     {
-        if (age >= 20 && age <= 39)
-        {
-            category = getCategory(bfp, 8, 20, 25);
+        if (age <= 39)
+        { // 20-39 age range
+            lowThreshold = 8;
+            normalThreshold = 20;
+            highThreshold = 25;
         }
         else if (age <= 59)
-        {
-            // no need for lower bound since we don't get input under 20
-            category = getCategory(bfp, 11, 22, 28);
+        { // 40-59 age range
+            lowThreshold = 11;
+            normalThreshold = 22;
+            highThreshold = 28;
         }
         else
-        {
-            category = getCategory(bfp, 13, 25, 30);
+        { // 60+ age range
+            lowThreshold = 13;
+            normalThreshold = 25;
+            highThreshold = 30;
         }
     }
+
+    category = getCategory(bfp, lowThreshold, normalThreshold, highThreshold);
 
     return std::make_pair(static_cast<int>(bfp), category);
 }
