@@ -16,7 +16,6 @@ void getUserDetails()
     // Prompt for gender
     std::cout << "Gender: Please specify your gender, input options: male, female.\n";
     std::cin >> gender;
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     // Prompt for age
     std::cout << "Age: Enter your age.\n";
