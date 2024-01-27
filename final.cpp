@@ -109,9 +109,25 @@ void getUserDetails()
     }
 }
 
+void display()
+{
+    std::cout << "User Health Profile\n";
+    std::cout << "----------------------------------------\n";
+    std::cout << "Gender: " << gender << "\n";
+    std::cout << "Age: " << age << " years\n";
+    std::cout << "Weight: " << weight << " kg\n";
+    std::cout << "Waist: " << waist << " cm\n";
+    std::cout << "Neck: " << neck << " cm\n";
+    std::cout << "Height: " << height << " cm\n";
+    std::cout << "Lifestyle: " << lifestyle << "\n";
 
+    if (gender == "Female" || gender == "female")
+    {
+        std::cout << "Hip: " << hip << " cm\n";
+    }
 
-
+    std::cout << "----------------------------------------\n";
+}
 
 int main()
 {
