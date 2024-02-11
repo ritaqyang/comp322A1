@@ -3,18 +3,32 @@
 #include <limits>
 #include <map>
 #include <fstream>
+#include <sstream>
+
+// Struct for storing userdata in vectors for Q7
+struct UserData
+{
+    std::string gender;
+    int age;
+    double weight; 
+    double waist;
+    double neck;
+    double hip;
+    double height;
+    std::string lifestyle;
+};
 
 // Global variables
-std::string globalGender;
-int globalAge;
-double globalWeight;
-double globalWaist;
-double globalNeck;
-double globalHeight;
-std::string globalLifestyle;
-double globalHip; // For female users
-std::map<std::string, int> calorieMap; //global map that suggests calorie intake 
-
+std::string g_gender;
+int g_age;
+double g_weight;
+double g_waist;
+double g_neck;
+double g_height;
+std::string g_lifestyle;
+double g_hip; // For female users
+std::map<std::string, int> calorieMap; //global map that suggests calorie intake
+std::vector<UserData> users; //for Q7, storing each line in one vector 
 
 // Function to clear the input buffer 
 void clearInputBuffer()
@@ -49,7 +63,7 @@ double getValidatedDouble()
     return value;
 }
 
-//Function to make string-format key for calorie map 
+//Function to make string-format key for calorie map
 std::string makeKey(const std::string &gender, const std::string &lifestyle, int ageRange)
 {
     return gender + "_" + lifestyle + "_" + std::to_string(ageRange);
@@ -106,8 +120,8 @@ void getUserDetails()
     std::cout << "Gender: Please specify your gender, input options: male, female.\n";
     while (true)
     {
-        std::getline(std::cin, globalGender);
-        if (globalGender == "male" || globalGender == "female")
+        std::getline(std::cin, g_gender);
+        if (g_gender == "male" || g_gender == "female")
         {
             break;
         }
@@ -115,10 +129,10 @@ void getUserDetails()
     }
 
     std::cout << "Age: Enter your age.\n";
-    globalAge = getValidatedInteger();
+    g_age = getValidatedInteger();
 
     // Check age validity, exit prrogram if age is not within range
-    if (globalAge < 20 || globalAge > 79)
+    if (g_age < 20 || g_age > 79)
     {
         std::cout << "Sorry, we don't have data for age under 20 or over 79.\n";
         exit(0); // Exit the program
@@ -126,22 +140,22 @@ void getUserDetails()
 
 
     std::cout << "Weight: Enter your body weight in kilograms.\n";
-    globalWeight = getValidatedDouble();
+    g_weight = getValidatedDouble();
 
     std::cout << "Waist: Input your waist measurement in centimeters.\n";
-    globalWaist = getValidatedDouble();
+    g_waist = getValidatedDouble();
 
     std::cout << "Neck: Provide your neck measurement in centimeters.\n";
-    globalNeck = getValidatedDouble();
+    g_neck = getValidatedDouble();
 
     std::cout << "Height: Input height measurement in centimeters.\n";
-    globalHeight = getValidatedDouble();
+    g_height = getValidatedDouble();
 
     std::cout << "Lifestyle: Provide information about your current lifestyle: sedentary, moderate (moderately active) or active.\n";
     while (true)
     {
-        std::getline(std::cin, globalLifestyle);
-        if (globalLifestyle == "sedentary" || globalLifestyle  == "moderate" || globalLifestyle == "active")
+        std::getline(std::cin, g_lifestyle);
+        if (g_lifestyle == "sedentary" || g_lifestyle  == "moderate" || g_lifestyle == "active")
         {
             break;
         }
@@ -149,10 +163,10 @@ void getUserDetails()
     }
 
     //hip measurement if user is female 
-    if (globalGender == "female")
+    if (g_gender == "female")
     {
         std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
-        globalHip = getValidatedDouble();
+        g_hip = getValidatedDouble();
     }
 }
 
@@ -233,7 +247,7 @@ void getUserDetails()
 
 //----------------------------------------------------------------
 // Q3: get daily calories
-int get_daily_calories(double age, const std::string &gender, const std::string &lifestyle)
+int get_daily_calories(double age, std::string gender, std::string lifestyle)
 {
     int cal; // calories
     // Identify the age range
@@ -267,17 +281,17 @@ void display()
 {
     std::cout << "User Health Profile\n";
     std::cout << "----------------------------------------\n";
-    std::cout << "Gender: " << globalGender << "\n";
-    std::cout << "Age: " << globalAge << " years\n";
-    std::cout << "Weight: " << globalWeight << " kg\n";
-    std::cout << "Waist: " << globalWaist << " cm\n";
-    std::cout << "Neck: " << globalNeck << " cm\n";
-    std::cout << "Height: " << globalHeight << " cm\n";
-    std::cout << "Lifestyle: " << globalLifestyle << "\n";
+    std::cout << "Gender: " << g_gender << "\n";
+    std::cout << "Age: " << g_age << " years\n";
+    std::cout << "Weight: " << g_weight << " kg\n";
+    std::cout << "Waist: " << g_waist << " cm\n";
+    std::cout << "Neck: " << g_neck << " cm\n";
+    std::cout << "Height: " << g_height << " cm\n";
+    std::cout << "Lifestyle: " << g_lifestyle << "\n";
 
-    if (globalGender == "Female" || globalGender == "female")
+    if (g_gender == "Female" || g_gender == "female")
     {
-        std::cout << "Hip: " << globalHip << " cm\n";
+        std::cout << "Hip: " << g_hip << " cm\n";
     }
 
     std::cout << "----------------------------------------\n";
@@ -300,38 +314,163 @@ void serialize(const std::string &filename)
         return;
     }
 
-    file << globalGender << ", "
-         << globalAge << ", "
-         << globalWeight << ", "
-         << globalWaist << ", "
-         << globalNeck << ", ";
+    file << g_gender << ", "
+         << g_age << ", "
+         << g_weight << ", "
+         << g_waist << ", "
+         << g_neck << ", ";
 
     // Conditionally add hip measurement for females
-    if (globalGender == "female")
+    if (g_gender == "female")
     {
-        file << globalHip << ", ";
+        file << g_hip << ", ";
     }
     else
     {
         file << ", "; // Leave hip empty for males
     }
 
-    file << globalHeight << ", "
-         << globalLifestyle << "\n";
+    file << g_height << ", "
+         << g_lifestyle << "\n";
 
     file.close();
 }
 
-int main()
-{
-    // test cases for function performance
-    std::pair<int, std::string> result = get_bfp(80, 40, 170, 90, "female", 30);
-    std::cout << "Body Fat Percentage: " << result.first << "%, Category: " << result.second << std::endl;
 
-    // Call the function to get user details
-    getUserDetails();
-    serialize("Data.csv");
-    display();
+//----------------------------------------------------------------
+//Q7: Read from file
+//Generate vectors for each line in the csv file 
+void readFromFile(const std::string &filename){
+    std::ifstream file(filename);
+    std::string line;
+
+    if (!file.is_open())
+    {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
+
+    while (getline(file, line))
+    {
+        std::stringstream lineStream(line);
+        std::string cell;
+        UserData user; //new user 
+
+        // CSV columns are ordered as gender, age, weight, waist, neck, hip, height, lifestyle
+        getline(lineStream, user.gender, ',');
+
+        getline(lineStream, cell, ',');
+        try
+        {
+            user.age = std::stoi(cell);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Conversion error for age: '" << cell << "': " << e.what() << std::endl;
+            
+        }
+        
+        getline(lineStream, cell, ',');
+        try{
+            user.weight = std::stod(cell);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Conversion error for weight: '" << cell << "': " << e.what() << std::endl;
+        }
+
+        getline(lineStream, cell, ',');
+        try
+        {
+            user.waist = std::stod(cell);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Conversion error for waist : '" << cell << "': " << e.what() << std::endl;
+        }
+        getline(lineStream, cell, ',');
+        try
+        {
+            user.neck = std::stod(cell);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Conversion error for neck: '" << cell << "': " << e.what() << std::endl;
+        }
+
+        getline(lineStream, cell, ',');
+        try
+        {
+            user.hip = std::stod(cell);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Conversion error for neck: '" << cell << "': " << e.what() << std::endl;
+            user.hip = 0; 
+        }
+        getline(lineStream, cell, ',');
+        try
+        {
+            user.height = std::stod(cell);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Conversion error for height: '" << cell << "': " << e.what() << std::endl;
+        }
+        getline(lineStream, user.lifestyle, ',');
+
+        // Add the user to the vector
+        users.push_back(user);
+    }
+
+    file.close();
+}
+
+
+int main(int argc, char *argv[])
+{
+    // Check if a filename is provided as an argument
+    if (argc > 1)
+    {
+        // Load existing user data from the specified CSV file
+        readFromFile(argv[1]);
+
+        // Test for vectors in global vector<UserData> users 
+        for (size_t i = 0; i < users.size(); ++i)
+        {
+            UserData &user = users[i];
+            
     
+            std::cout << "Gender: " << user.gender
+                      << ", Age: " << user.age
+                      << ", Height: " << user.height
+                      << ", Waist: " << user.waist
+                      << ", Neck: " << user.neck
+                      << ", Hip: " << user.hip 
+                    << std::endl;
+        }
+    }
+    else
+    {
+        // Gather user details
+        getUserDetails();
+        // Calculate body fat percentage
+        std::pair <int, std::string> bfpResult = get_bfp(g_waist, g_neck, g_height, g_hip,
+                                 g_gender, g_age);
+        std::cout << "Body Fat Percentage: " << bfpResult.first << "% (" << bfpResult.second << std::endl;
+        // Calculate daily calorie intake
+        int dailyCalories = get_daily_calories(g_age, g_gender,
+                                               g_lifestyle);
+        std::cout << "Daily Caloric Intake: " << dailyCalories << "7 calories " << std::endl;
+        // Calculate macronutrient brekdown
+        double carbs,protein, fat;
+        meal_prep(dailyCalories, carbs, protein, fat);
+        std::cout << "Macronutrient Breakdown:\n";
+        std::cout << "Carbs: " << carbs << "g, Protein: " << protein << "g, Fat : " << fat << " g " << std::endl;
+        // Display user information
+        display();
+        // Save user data to a CSV file
+        serialize("user_data.csv");
+    }
     return 0;
 }
