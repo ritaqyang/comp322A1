@@ -4,7 +4,7 @@
 #include <utility> // for std::pair
 
 //Helper funtion to get category 
-std::string getCategory( int bfp, int lowThreshold, int normalThreshold, int highThreshold)
+std::string getCategory( double bfp, int lowThreshold, int normalThreshold, int highThreshold)
 {
 
     if (bfp < lowThreshold)
@@ -20,7 +20,7 @@ std::string getCategory( int bfp, int lowThreshold, int normalThreshold, int hig
         return "high";
     }
 
-    return "undefined"; // Fallback return statement if none of the conditions are met
+    return "undefined"; 
 }
 
 std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
@@ -29,22 +29,16 @@ std::pair<int, std::string> get_bfp(double waist, double neck, double height, do
     std::string category;
 
     // Calculate BFP based on gender
-    if (gender == "male")
-    {
+    if (gender == "female"){
         bfp = 495 / (1.0324 - 0.19077 * std::log10(waist - neck) + 0.15456 * std::log10(height)) - 450;
     }
-    else if (gender == "female")
-    {
+    else { //male (inputs were already validated when entering, so only female and male inputs) 
         bfp = 495 / (1.29579 - 0.35004 * std::log10(waist + hip - neck) + 0.22100 * std::log10(height)) - 450;
     }
-    else
-    {
-        return std::make_pair(-1, "Invalid gender");
-    }
-
-    std::string category;
-    //For each age range, use helper function to get category accoring to theresholds
+    //For each age range, use helper function to get category according to threshholds
+    
     //Get the thresholds first as variables, so it's more visualy clear for future uses and changes to the data
+    
     //Instead of the strucutre if .... then getcategory(bfp,21,33,39) 
 
     int lowThreshold, normalThreshold, highThreshold;
@@ -70,8 +64,7 @@ std::pair<int, std::string> get_bfp(double waist, double neck, double height, do
             highThreshold = 42;
         }
     }
-    else if (gender == "male")
-    {
+    else {
         if (age <= 39)
         { // 20-39 age range
             lowThreshold = 8;
@@ -100,8 +93,7 @@ std::pair<int, std::string> get_bfp(double waist, double neck, double height, do
 int main()
 {
     // test cases for function performance 
-    // auto result = get_bfp(80, 40, 170, 90, "Male", 30);
-    auto result = get_bfp(80, 40, 170, 90, "female", 30);
+    std::pair<int,std::string> result = get_bfp(80, 40, 170, 90, "female", 30);
     std::cout << "Body Fat Percentage: " << result.first << "%, Category: " << result.second << std::endl;
 
     return 0;

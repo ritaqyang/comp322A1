@@ -1,13 +1,13 @@
 {
-  "version": "0.2.0",
   "configurations": [
+    
     {
       "name": "C/C++ Runner: Debug Session",
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/ritayang/github/comp322A1",
-      "program": "/Users/ritayang/github/comp322A1/build/Debug/outDebug"
+      "cwd": "/Users/ritayang/comp322A1",
+      "program": "/Users/ritayang/comp322A1/build/Debug/outDebug"
     }
   ]
 }

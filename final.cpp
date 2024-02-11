@@ -1,27 +1,28 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <map>
 
 // Global variables
-std::string gender;
-int age;
-double weight;
-double waist;
-double neck;
-double height;
-std::string lifestyle;
-double hip; // For female users
+std::string globalGender;
+int globalAge;
+double globalWeight;
+double globalWaist;
+double globalNeck;
+double globalHeight;
+std::string globalLifestyle;
+double globalHip; // For female users
+std::map<std::string, int> calorieMap; //global map that suggests calorie intake 
 
 
-// Function to clear the input buffer
-
+// Function to clear the input buffer 
 void clearInputBuffer()
 {
     std::cin.clear();                                                   // Reset any error flags
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore any characters in the input buffer
 }
 
-// Function to get validated integer input
+// Function to get validated integer input 
 int getValidatedInteger()
 {
     int value;
@@ -34,7 +35,7 @@ int getValidatedInteger()
     return value;
 }
 
-// Function to get validated double input
+// Function to get validated double input 
 double getValidatedDouble()
 {
     double value;
@@ -47,91 +48,239 @@ double getValidatedDouble()
     return value;
 }
 
+//Function to make string-format key for calorie map 
+std::string makeKey(const std::string &gender, const std::string &lifestyle, int ageRange)
+{
+    return gender + "_" + lifestyle + "_" + std::to_string(ageRange);
+}
 
+//stores best calorie info in global variable calorieMap
+void updateCalorieMap(){
+    calorieMap[makeKey("male", "sedentary", 1)] = 2400;
+    calorieMap[makeKey("male", "moderate", 1)] = 2700;
+    calorieMap[makeKey("male", "active", 1)] = 3000;
+    calorieMap[makeKey("female", "sedentary", 1)] = 2000;
+    calorieMap[makeKey("female", "moderate", 1)] = 2100;
+    calorieMap[makeKey("female", "active", 1)] = 2400;
+    calorieMap[makeKey("male", "sedentary", 2)] = 2300;
+    calorieMap[makeKey("male", "moderate", 2)] = 2600;
+    calorieMap[makeKey("male", "active", 2)] = 2900;
+    calorieMap[makeKey("female", "sedentary", 2)] = 1900;
+    calorieMap[makeKey("female", "moderate", 2)] = 2000;
+    calorieMap[makeKey("female", "active", 2)] = 2300;
+    calorieMap[makeKey("male", "sedentary", 3)] = 2200;
+    calorieMap[makeKey("male", "moderate", 3)] = 2500;
+    calorieMap[makeKey("male", "active", 3)] = 2800;
+    calorieMap[makeKey("female", "sedentary", 3)] = 1800;
+    calorieMap[makeKey("female", "moderate", 3)] = 1900;
+    calorieMap[makeKey("female", "active", 3)] = 2200;
+}
+
+//----------------------------------------------------------------
+// Q1 function starts here 
 void getUserDetails()
 {
-    // Prompt for gender
+    //This function gets user detais from standard input 
+    //also populates calorie map for future use
+    updateCalorieMap();
+
     std::cout << "Gender: Please specify your gender, input options: male, female.\n";
     while (true)
     {
-        std::getline(std::cin, gender);
-        if (gender == "male" || gender == "female")
+        std::getline(std::cin, globalGender);
+        if (globalGender == "male" || globalGender == "female")
         {
             break;
         }
         std::cout << "Invalid input. Please specify your gender as male or female: ";
     }
 
-    // Prompt for age
     std::cout << "Age: Enter your age.\n";
-    age = getValidatedInteger();
+    globalAge = getValidatedInteger();
 
-    // Check age validity
-    if (age < 20 || age > 79)
+    // Check age validity, exit prrogram if age is not within range
+    if (globalAge < 20 || globalAge > 79)
     {
         std::cout << "Sorry, we don't have data for age under 20 or over 79.\n";
         exit(0); // Exit the program
     }
 
-    // Prompt for weight
+
     std::cout << "Weight: Enter your body weight in kilograms.\n";
-    weight = getValidatedDouble();
+    globalWeight = getValidatedDouble();
 
-    // Prompt for waist measurement
     std::cout << "Waist: Input your waist measurement in centimeters.\n";
-    waist = getValidatedDouble();
+    globalWaist = getValidatedDouble();
 
-    // Prompt for neck measurement
     std::cout << "Neck: Provide your neck measurement in centimeters.\n";
-    neck = getValidatedDouble();
+    globalNeck = getValidatedDouble();
 
-    // Prompt for height
     std::cout << "Height: Input height measurement in centimeters.\n";
-    height = getValidatedDouble();
+    globalHeight = getValidatedDouble();
 
-    // Prompt for lifestyle
     std::cout << "Lifestyle: Provide information about your current lifestyle: sedentary, moderate (moderately active) or active.\n";
     while (true)
     {
-        std::getline(std::cin, lifestyle);
-        if (lifestyle == "sedentary" || lifestyle == "moderate" || lifestyle == "active")
+        std::getline(std::cin, globalLifestyle);
+        if (globalLifestyle == "sedentary" || globalLifestyle  == "moderate" || globalLifestyle == "active")
         {
             break;
         }
         std::cout << "Invalid input. Please specify your lifestyle as sedentary, moderate, or active: ";
     }
 
-    // Additional prompt for female users
-    if (gender == "female")
+    //hip measurement if user is female 
+    if (globalGender == "female")
     {
         std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
-        hip = getValidatedDouble();
+        globalHip = getValidatedDouble();
     }
 }
 
+
+//----------------------------------------------------------------
+// Q2: get body fat percentage
+// The function returns back the body fat percentage value together with the associated group(low, normal, high, very high)
+
+    std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
+{
+    double bfp;
+    std::string category;
+
+    // Calculate BFP based on gender
+    if (gender == "female")
+    {
+        bfp = 495 / (1.0324 - 0.19077 * std::log10(waist - neck) + 0.15456 * std::log10(height)) - 450;
+    }
+    else
+    { // male (inputs were already validated when entering, so only female and male inputs)
+        bfp = 495 / (1.29579 - 0.35004 * std::log10(waist + hip - neck) + 0.22100 * std::log10(height)) - 450;
+    }
+    // For each age range, use helper function to get category according to threshholds
+
+    // Get the thresholds first as variables, so it's more visualy clear for future uses and changes to the data
+
+    // Instead of the strucutre if .... then getcategory(bfp,21,33,39)
+
+    int lowThreshold, normalThreshold, highThreshold;
+
+    if (gender == "female")
+    {
+        if (age <= 39)
+        { // 20-39 age range
+            lowThreshold = 21;
+            normalThreshold = 33;
+            highThreshold = 39;
+        }
+        else if (age <= 59)
+        { // 40-59 age range
+            lowThreshold = 23;
+            normalThreshold = 34;
+            highThreshold = 40;
+        }
+        else
+        { // 60+ age range
+            lowThreshold = 24;
+            normalThreshold = 36;
+            highThreshold = 42;
+        }
+    }
+    else
+    {
+        if (age <= 39)
+        { // 20-39 age range
+            lowThreshold = 8;
+            normalThreshold = 20;
+            highThreshold = 25;
+        }
+        else if (age <= 59)
+        { // 40-59 age range
+            lowThreshold = 11;
+            normalThreshold = 22;
+            highThreshold = 28;
+        }
+        else
+        { // 60+ age range
+            lowThreshold = 13;
+            normalThreshold = 25;
+            highThreshold = 30;
+        }
+    }
+
+    category = getCategory(bfp, lowThreshold, normalThreshold, highThreshold);
+
+    return std::make_pair(static_cast<int>(bfp), category);
+}
+
+//----------------------------------------------------------------
+// Q3: get daily calories
+int get_daily_calories(double age, const std::string &gender, const std::string &lifestyle)
+{
+    int cal; // calories
+    // Identify the age range
+    int ageRange = (age >= 19 && age <= 30) ? 1 : (age > 30 && age <= 50) ? 2
+                                              : (age > 50)                ? 3
+                                                                          : 0;
+    std::string key = makeKey(gender, lifestyle, ageRange);
+    cal = calorieMap[key]; // use populated data in global variable calorieMap
+
+    return cal;
+}
+
+//----------------------------------------------------------------
+// Q4: Macronutrient Breakdown 
+
+//----------------------------------------------------------------
+//Q5: display funcion 
 void display()
 {
     std::cout << "User Health Profile\n";
     std::cout << "----------------------------------------\n";
-    std::cout << "Gender: " << gender << "\n";
-    std::cout << "Age: " << age << " years\n";
-    std::cout << "Weight: " << weight << " kg\n";
-    std::cout << "Waist: " << waist << " cm\n";
-    std::cout << "Neck: " << neck << " cm\n";
-    std::cout << "Height: " << height << " cm\n";
-    std::cout << "Lifestyle: " << lifestyle << "\n";
+    std::cout << "Gender: " << globalGender << "\n";
+    std::cout << "Age: " << globalAge << " years\n";
+    std::cout << "Weight: " << globalWeight << " kg\n";
+    std::cout << "Waist: " << globalWaist << " cm\n";
+    std::cout << "Neck: " << globalNeck << " cm\n";
+    std::cout << "Height: " << globalHeight << " cm\n";
+    std::cout << "Lifestyle: " << globalLifestyle << "\n";
 
-    if (gender == "Female" || gender == "female")
+    if (globalGender == "Female" || globalGender == "female")
     {
-        std::cout << "Hip: " << hip << " cm\n";
+        std::cout << "Hip: " << globalHip << " cm\n";
     }
 
     std::cout << "----------------------------------------\n";
 }
 
+
+
+// Helper funtion to get category
+std::string getCategory(double bfp, int lowThreshold, int normalThreshold, int highThreshold)
+{
+
+    if (bfp < lowThreshold)
+    {
+        return "low";
+    }
+    else if (bfp < normalThreshold)
+    {
+        return "normal";
+    }
+    else if (bfp < highThreshold)
+    {
+        return "high";
+    }
+
+    return "undefined";
+}
 int main()
 {
+    // test cases for function performance
+    std::pair<int, std::string> result = get_bfp(80, 40, 170, 90, "female", 30);
+    std::cout << "Body Fat Percentage: " << result.first << "%, Category: " << result.second << std::endl;
+
     // Call the function to get user details
     getUserDetails();
+    display(); 
     return 0;
 }
