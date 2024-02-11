@@ -2,6 +2,7 @@
 #include <string>
 #include <limits>
 #include <map>
+#include <fstream>
 
 // Global variables
 std::string globalGender;
@@ -53,7 +54,25 @@ std::string makeKey(const std::string &gender, const std::string &lifestyle, int
 {
     return gender + "_" + lifestyle + "_" + std::to_string(ageRange);
 }
+// Helper funtion to get category for BFP thresholds
+std::string getCategory(double bfp, int lowThreshold, int normalThreshold, int highThreshold)
+{
 
+    if (bfp < lowThreshold)
+    {
+        return "low";
+    }
+    else if (bfp < normalThreshold)
+    {
+        return "normal";
+    }
+    else if (bfp < highThreshold)
+    {
+        return "high";
+    }
+
+    return "undefined";
+}
 //stores best calorie info in global variable calorieMap
 void updateCalorieMap(){
     calorieMap[makeKey("male", "sedentary", 1)] = 2400;
@@ -228,8 +247,20 @@ int get_daily_calories(double age, const std::string &gender, const std::string 
 }
 
 //----------------------------------------------------------------
-// Q4: Macronutrient Breakdown 
+// Q4: Macronutrient Breakdown (use references to return back multiple values)
+// The function will return three values corresponding for the amount in grams of carbs, amount in grams of protein and amount in grams of fat 
+void meal_prep(int calories_input, double &carbs_output, double &protein_output, double &fat_output)
+{
+    // Calculate the caloric intake for each macronutrient
+    double calories_for_carbs = 0.50 * calories_input;   // 50% of total calories
+    double calories_for_protein = 0.30 * calories_input; // 30% of total calories
+    double calories_for_fat = 0.20 * calories_input;     // 20% of total calories
 
+    // Convert the caloric intake into grams for each macronutrient
+    carbs_output = calories_for_carbs / 4;     // 1 gram of carbs = 4 calories
+    protein_output = calories_for_protein / 4; // 1 gram of protein = 4 calories
+    fat_output = calories_for_fat / 9;         // 1 gram of fat = 9 calories
+}
 //----------------------------------------------------------------
 //Q5: display funcion 
 void display()
@@ -253,26 +284,44 @@ void display()
 }
 
 
-
-// Helper funtion to get category
-std::string getCategory(double bfp, int lowThreshold, int normalThreshold, int highThreshold)
+//----------------------------------------------------------------
+//Q6: Persistence 
+//Function take filename and record user data across multiple program executions 
+void serialize(const std::string &filename)
 {
+    std::ofstream file;
 
-    if (bfp < lowThreshold)
+    // Open the file in append mode
+    file.open(filename, std::ios_base::app);
+
+    if (!file.is_open())
     {
-        return "low";
-    }
-    else if (bfp < normalThreshold)
-    {
-        return "normal";
-    }
-    else if (bfp < highThreshold)
-    {
-        return "high";
+        std::cerr << "Error opening file: " << filename << "\n";
+        return;
     }
 
-    return "undefined";
+    file << globalGender << ", "
+         << globalAge << ", "
+         << globalWeight << ", "
+         << globalWaist << ", "
+         << globalNeck << ", ";
+
+    // Conditionally add hip measurement for females
+    if (globalGender == "female")
+    {
+        file << globalHip << ", ";
+    }
+    else
+    {
+        file << ", "; // Leave hip empty for males
+    }
+
+    file << globalHeight << ", "
+         << globalLifestyle << "\n";
+
+    file.close();
 }
+
 int main()
 {
     // test cases for function performance
@@ -281,6 +330,8 @@ int main()
 
     // Call the function to get user details
     getUserDetails();
-    display(); 
+    serialize("Data.csv");
+    display();
+    
     return 0;
 }
