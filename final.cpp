@@ -279,7 +279,7 @@ void meal_prep(int calories_input, double &carbs_output, double &protein_output,
 //Q5: display funcion 
 void display()
 {
-    std::cout << "User Health Profile\n";
+    std::cout << "User Input Data\n";
     std::cout << "----------------------------------------\n";
     std::cout << "Gender: " << g_gender << "\n";
     std::cout << "Age: " << g_age << " years\n";
@@ -293,8 +293,23 @@ void display()
     {
         std::cout << "Hip: " << g_hip << " cm\n";
     }
-
     std::cout << "----------------------------------------\n";
+    std::cout << "User Health Profile\n";
+    std::cout << "----------------------------------------\n";
+    // Calculate body fat percentage
+    std::pair<int, std::string> bfpResult = get_bfp(g_waist, g_neck, g_height, g_hip,
+                                                    g_gender, g_age);
+    std::cout << "Body Fat Percentage: " << bfpResult.first << "% (" << bfpResult.second << ")" << std::endl;
+    // Calculate daily calorie intake
+    int dailyCalories = get_daily_calories(g_age, g_gender,
+                                           g_lifestyle);
+    std::cout << "Daily Caloric Intake Suggestion: " << dailyCalories << " calories " << std::endl;
+    // Calculate macronutrient brekdown
+
+    double carbs, protein, fat;
+    meal_prep(dailyCalories, carbs, protein, fat);
+    std::cout << "Macronutrient Breakdown:\n";
+    std::cout << "Carbs: " << carbs << "g, Protein: " << protein << "g, Fat : " << fat << " g " << std::endl;
 }
 
 
@@ -452,23 +467,9 @@ int main(int argc, char *argv[])
     }
     else
     {
-        // Gather user details
         getUserDetails();
-        // Calculate body fat percentage
-        std::pair <int, std::string> bfpResult = get_bfp(g_waist, g_neck, g_height, g_hip,
-                                 g_gender, g_age);
-        std::cout << "Body Fat Percentage: " << bfpResult.first << "% (" << bfpResult.second << ")" << std::endl;
-        // Calculate daily calorie intake
-        int dailyCalories = get_daily_calories(g_age, g_gender,
-                                               g_lifestyle);
-        std::cout << "Daily Caloric Intake: " << dailyCalories << " calories " << std::endl;
-        // Calculate macronutrient brekdown
-        double carbs,protein, fat;
-        meal_prep(dailyCalories, carbs, protein, fat);
-        std::cout << "Macronutrient Breakdown:\n";
-        std::cout << "Carbs: " << carbs << "g, Protein: " << protein << "g, Fat : " << fat << " g " << std::endl;
         // Display user information
-        display();
+        display(); //other functions are ran within the display function 
         // Save user data to a CSV file
         serialize("user_data.csv");
     }
