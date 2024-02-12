@@ -4,6 +4,7 @@
 #include <map>
 #include <fstream>
 #include <sstream>
+#include <cmath> 
 
 // Struct for storing userdata in vectors for Q7
 struct UserData
@@ -181,12 +182,12 @@ void getUserDetails()
     std::string category;
 
     // Calculate BFP based on gender
-    if (gender == "female")
+    if (gender == "male")
     {
         bfp = 495 / (1.0324 - 0.19077 * std::log10(waist - neck) + 0.15456 * std::log10(height)) - 450;
     }
     else
-    { // male (inputs were already validated when entering, so only female and male inputs)
+    { // female (inputs were already validated when entering, so only female and male inputs)
         bfp = 495 / (1.29579 - 0.35004 * std::log10(waist + hip - neck) + 0.22100 * std::log10(height)) - 450;
     }
     // For each age range, use helper function to get category according to threshholds
@@ -250,7 +251,6 @@ void getUserDetails()
 int get_daily_calories(double age, std::string gender, std::string lifestyle)
 {
     int cal; // calories
-    // Identify the age range
     int ageRange = (age >= 19 && age <= 30) ? 1 : (age > 30 && age <= 50) ? 2
                                               : (age > 50)                ? 3
                                                                           : 0;
@@ -457,11 +457,11 @@ int main(int argc, char *argv[])
         // Calculate body fat percentage
         std::pair <int, std::string> bfpResult = get_bfp(g_waist, g_neck, g_height, g_hip,
                                  g_gender, g_age);
-        std::cout << "Body Fat Percentage: " << bfpResult.first << "% (" << bfpResult.second << std::endl;
+        std::cout << "Body Fat Percentage: " << bfpResult.first << "% (" << bfpResult.second << ")" << std::endl;
         // Calculate daily calorie intake
         int dailyCalories = get_daily_calories(g_age, g_gender,
                                                g_lifestyle);
-        std::cout << "Daily Caloric Intake: " << dailyCalories << "7 calories " << std::endl;
+        std::cout << "Daily Caloric Intake: " << dailyCalories << " calories " << std::endl;
         // Calculate macronutrient brekdown
         double carbs,protein, fat;
         meal_prep(dailyCalories, carbs, protein, fat);
