@@ -16,6 +16,10 @@ struct UserInfo
     double neck;
     double hip;
     double height;
+    double calories; 
+    double carbs;
+    double protein;
+    double fat; 
     std::string lifestyle;
     std::string name; 
     UserInfo* next; 
@@ -93,10 +97,9 @@ public:
         }
     };
 
-
-
-    //----------------------------------------------------------------delete user --------------------------------------------------------------
-    void deleteUser(std::string username){
+    
+    void deleteUser(std::string username)
+    {
         UserInfo* current = mylist; 
         UserInfo* prev = nullptr; 
         while(current != nullptr){
@@ -106,14 +109,49 @@ public:
                 } else {
                     prev->next = current->next; 
                 }
-                delete current; 
-                return; 
+                delete current;
+                break;
             }
             prev = current; 
             current = current->next; 
         }
     };
 
+    UserInfo* findUser(std::string username){
+        UserInfo* current = mylist; 
+        while(current != nullptr){
+            if(current->name == username){
+                return current; 
+            }
+            current = current->next; 
+        }
+        return nullptr;
+        
+    };
+    
+    //----------------------------------------------------display user info --------------------------------------------------------------
+    void display(std::string username)
+    {
+
+        UserInfo *current = mylist;
+        while (current != nullptr)
+        {
+            if (current->name == username)
+            {
+                std::cout << "User Input Data\n";
+                std::cout << "----------------------------------------\n";
+                std::cout << "Gender: " << current->gender << "\n";
+                std::cout << "Age: " << current->age << " years\n";
+                std::cout << "Weight: " << current->weight << " kg\n";
+                std::cout << "Waist: " << current->waist << " cm\n";
+                std::cout << "Neck: " << current->neck << " cm\n";
+                std::cout << "Height: " << current->height << " cm\n";
+                std::cout << "Lifestyle: " << current->lifestyle << "\n";
+                break;
+            }
+            current = current->next;
+        }
+    };
     //-------------------------------------------read from file -----------------------------------------------------------------------------------
     void readFromFile(std::string filename){
         
@@ -228,33 +266,48 @@ public:
 
 
 //------------------------------------------------------write to file ----------------------------------------------------------------
-    void writeToFile(std::string filename); 
+    void writeToFile(std::string filename)
+    {
+        std::ofstream file;
 
+        // Open the file in append mode
+        file.open(filename, std::ios_base::app);
 
+        if (!file.is_open())
+        {
+            std::cerr << "Error opening file: " << filename << "\n";
+            return;
+        }
 
-
-
-    //----------------------------------------------------display user info --------------------------------------------------------------
-    
-    void display(std::string username){
-
-
-        UserInfo* current = mylist;
+        UserInfo *current = mylist;
         while (current != nullptr){
-            if(current->name == username){
-                std::cout << "User Input Data\n";
-                std::cout << "----------------------------------------\n";
-                std::cout << "Gender: " << current->gender << "\n";
-                std::cout << "Age: " << current->age << " years\n";
-                std::cout << "Weight: " << current->weight << " kg\n";
-                std::cout << "Waist: " << current->waist << " cm\n";
-                std::cout << "Neck: " << current->neck << " cm\n";
-                std::cout << "Height: " << current->height << " cm\n";
-                std::cout << "Lifestyle: " << current->lifestyle << "\n";
+
+            file << current->gender << ", "
+                << current->age << ", "
+                << current->weight << ", "
+                << current->waist << ", "
+                << current->neck << ", ";
+
+            // Conditionally add hip measurement for female users
+            if (current->gender == "female")
+            {
+                file << current->hip << ", ";
             }
+            else
+            {
+                file << ", "; // Leave hip empty for male users
+            }
+
+            file << current->height << ", "
+                << current->lifestyle << "\n";
+
             current = current->next;
         }
-    }
+
+        file.close();
+    }; 
+
+
 
     //todo: other stuff to print 
 
@@ -262,8 +315,6 @@ public:
 private: 
     UserInfo*  mylist; // pointer to first element in linked list
     UserInfo*  tail; // pointer to last element in linked list
-
-
 
 //----------------------------------------------------helper methods for gathering user input ------------------------------------------------
     // Function to clear the input buffer
@@ -306,37 +357,62 @@ private:
 class HealthAssistant {
 
 public:
+
+    HealthAssistant(){
+    }; //constructor
     
     //-----------------------wrapper methods ----------------------------------------------------------------
-    // wrapper method that calls addUserInfo in class UserInfoManager
-    void getUserDetail()
-    {
+    
+
+    void getUserDetail(){
         manager.addUserInfo();
     };
+
+    void serialize(std::string filename){
+        manager.writeToFile(filename);
+    }; //wrapper method
 
     void display(std::string username){
         manager.display(username);
     }; //wrapper method
-    void serialize(std::string filename){
-        manager.writeToFile(filename);
-    }; //wrapper method
-    void readFromFile(std::string filename){
-        manager.readFromFile(filename);
-    }; //wrapper method
+    
+    
     void deleteUser(std::string username){
         manager.deleteUser(username);
-    }; //wrapper method
+    };
 
-    void getBfp(std::string username);
-    void getDailyCalories(std::string username)
+
+    //------------------------------getBFP ----------------------------------------------------------------
+
+    void getBfp(std::string username){
+        UserInfo *user = manager.findUser(username);
+        if (user == nullptr)
+        {
+            std::cout << "User not found\n";
+            return;
+        }
+
+        std::pair<int, std::string> bfp = get_bfp(user->waist, user->neck, user->height, user->hip,user->gender,user->age); 
+    }; 
+
+
+    //-------------------------get daily calories------------------------------------------------------------
+
+    void getDailyCalories(const std::string username)
     {
+        UserInfo *user = manager.findUser(username);
+        if (user == nullptr)
+        {
+            std::cout << "User not found\n";
+            return;
+        }
 
-        int cal = 2400;
-        int age;
-        std::string gender;
-        std::string lifestyle;
+        int cal = 2400;                          // Default calorie requirement
+        int age = user->age;                     // Extract age from user information
+        std::string gender = user->gender;       // Extract gender from user information
+        std::string lifestyle = user->lifestyle; // Extract lifestyle from user information
 
-        // Three age ranges, 1,2,3 for each category
+        // Three age ranges, 1, 2, 3 for each category
         int ageRange = (age >= 19 && age <= 30) ? 0 : (age > 30 && age <= 50) ? 1
                                                   : (age > 50)                ? 2
                                                                               : 0;
@@ -345,24 +421,141 @@ public:
                                                     : (lifestyle == "active")     ? 2
                                                                                   : 0;
 
-        cal -= 200 * ageRange; // for each age level, subtract 200 cal
+        cal -= 200 * ageRange; // For each age level, subtract 200 cal
         if (gender == "female")
         {
-            cal -= 400;            // female threshold 400 less than male threshold
-            cal += 200 * activity; // for each activity level, add 200 cal
+            cal -= 400;            // Female threshold 400 less than male threshold
+            cal += 200 * activity; // For each activity level, add 200 cal
         }
         else if (gender == "male")
         {
-            cal += 300 * activity; // for each activity level, add 300 cal
+            cal += 300 * activity; // For each activity level, add 300 cal
         }
+
+        user->calories = cal; 
+
+        std::cout << "Daily calorie requirement for " << username << " is: " << cal << " calories\n";
+
+    }
+
+
+    //------------------------------meal prep --------------------------------------------------------------
+
+    void getMealPrep(std::string username){
+
+        UserInfo *user = manager.findUser(username);
+        if (user == nullptr)
+        {
+            std::cout << "User not found\n";
+            return;
+        }
+
+        int calories_input = user->calories; // Default calorie requirement
+        // Calculate the caloric intake for each macronutrient
+        double calories_for_carbs = 0.50 * calories_input;   // 50% of total calories
+        double calories_for_protein = 0.30 * calories_input; // 30% of total calories
+        double calories_for_fat = 0.20 * calories_input;     // 20% of total calories
+
+        // Convert the caloric intake into grams for each macronutrient
+        user->carbs = calories_for_carbs / 4;     // 1 gram of carbs = 4 calories
+        user->protein = calories_for_protein / 4; // 1 gram of protein = 4 calories
+        user->fat = calories_for_fat / 9;         // 1 gram of fat = 9 calories
+
+    
     };
-    //void getMealPrep(std::string username){};
+
 
 private:
     UserInfoManager manager; 
 
-}; 
+    //--------------------------------------------helper methods--------------------------------
+    std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
+    {
+        double bfp;
+        std::string category;
 
+        // Calculate BFP based on gender
+        if (gender == "male")
+        {
+            bfp = 495 / (1.0324 - 0.19077 * std::log10(waist - neck) + 0.15456 * std::log10(height)) - 450;
+        }
+        else
+        { // female (inputs were already validated when entering, so only female and male inputs)
+            bfp = 495 / (1.29579 - 0.35004 * std::log10(waist + hip - neck) + 0.22100 * std::log10(height)) - 450;
+        }
+        // For each age range, use helper function to get category according to threshholds
+
+        // Get the thresholds first as variables, so it's more visualy clear for future uses and changes to the data
+
+        int lowThreshold, normalThreshold, highThreshold;
+
+        if (gender == "female")
+        {
+            if (age <= 39)
+            { // 20-39 age range
+                lowThreshold = 21;
+                normalThreshold = 33;
+                highThreshold = 39;
+            }
+            else if (age <= 59)
+            { // 40-59 age range
+                lowThreshold = 23;
+                normalThreshold = 34;
+                highThreshold = 40;
+            }
+            else
+            { // 60+ age range
+                lowThreshold = 24;
+                normalThreshold = 36;
+                highThreshold = 42;
+            }
+        }
+        else
+        {
+            if (age <= 39)
+            { // 20-39 age range
+                lowThreshold = 8;
+                normalThreshold = 20;
+                highThreshold = 25;
+            }
+            else if (age <= 59)
+            { // 40-59 age range
+                lowThreshold = 11;
+                normalThreshold = 22;
+                highThreshold = 28;
+            }
+            else
+            { // 60+ age range
+                lowThreshold = 13;
+                normalThreshold = 25;
+                highThreshold = 30;
+            }
+        }
+
+        category = getCategory(bfp, lowThreshold, normalThreshold, highThreshold);
+
+        return std::make_pair(static_cast<int>(bfp), category);
+    }
+    // Helper funtion to get category for BFP thresholds
+    std::string getCategory(double bfp, int lowThreshold, int normalThreshold, int highThreshold)
+    {
+
+        if (bfp < lowThreshold)
+        {
+            return "low";
+        }
+        else if (bfp < normalThreshold)
+        {
+            return "normal";
+        }
+        else if (bfp < highThreshold)
+        {
+            return "high";
+        }
+
+        return "undefined";
+    }
+};
 
 int main()
 {
