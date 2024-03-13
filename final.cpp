@@ -16,7 +16,9 @@ struct UserInfo
     double neck;
     double hip;
     double height;
-    double calories; 
+    double bfp;
+    std::string bfp_category; 
+    double calories;
     double carbs;
     double protein;
     double fat; 
@@ -30,6 +32,7 @@ class UserInfoManager {
 public:
     UserInfoManager(){
         mylist = nullptr; 
+        tail = nullptr;
     }; // constructor 
     ~UserInfoManager(){
         UserInfo* current = mylist; 
@@ -45,7 +48,8 @@ public:
 
         UserInfo* newUser = new UserInfo(); // create new userInfo object
 
-        std::cout << "Please enter your username: \n"; 
+        std::cout << "Please enter your username: \n";
+        std::getline(std::cin, newUser->name);
 
         std::cout << "Gender: Please specify your gender, input options: male, female.\n";
         while (true)
@@ -95,9 +99,21 @@ public:
             std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
             newUser->hip = getValidatedDouble();
         }
+        if (mylist == nullptr){
+            mylist = newUser; 
+            tail = newUser; 
+            newUser->next = nullptr; 
+        
+        }
+        else{
+            tail->next = newUser;
+            tail = newUser;
+            newUser->next = nullptr;
+        }
+        
     };
 
-    
+        //----------------------------------------------- delete user -----------------------------------------------------------
     void deleteUser(std::string username)
     {
         UserInfo* current = mylist; 
@@ -116,40 +132,32 @@ public:
             current = current->next; 
         }
     };
-
-    UserInfo* findUser(std::string username){
-        UserInfo* current = mylist; 
-        while(current != nullptr){
-            if(current->name == username){
-                return current; 
-            }
-            current = current->next; 
-        }
-        return nullptr;
-        
-    };
     
     //----------------------------------------------------display user info --------------------------------------------------------------
     void display(std::string username)
     {
 
         UserInfo *current = mylist;
-        while (current != nullptr)
-        {
-            if (current->name == username)
+        //case when input == "all"
+
+        if (username == "all"){
+            while (current != nullptr)
             {
-                std::cout << "User Input Data\n";
-                std::cout << "----------------------------------------\n";
-                std::cout << "Gender: " << current->gender << "\n";
-                std::cout << "Age: " << current->age << " years\n";
-                std::cout << "Weight: " << current->weight << " kg\n";
-                std::cout << "Waist: " << current->waist << " cm\n";
-                std::cout << "Neck: " << current->neck << " cm\n";
-                std::cout << "Height: " << current->height << " cm\n";
-                std::cout << "Lifestyle: " << current->lifestyle << "\n";
-                break;
+                printUserInfo(current);
+                current = current->next;
             }
-            current = current->next;
+            return;
+        }
+
+        //other case where we find the user
+        UserInfo* user = findUser(username); 
+        if (user == nullptr)
+        {
+            std::cout << "User not found\n";
+            return;
+        }
+        else{
+            printUserInfo(user);
         }
     };
     //-------------------------------------------read from file -----------------------------------------------------------------------------------
@@ -305,17 +313,59 @@ public:
         }
 
         file.close();
+    };
+
+    //-------------------------------------------helper method for linked list --------------------------------------------------------------
+    UserInfo *findUser(std::string username)
+    {
+        UserInfo *current = mylist;
+        while (current != nullptr)
+        {
+            if (current->name == username)
+            {
+                return current;
+            }
+            current = current->next;
+        }
+        return nullptr;
+    };
+
+    
+    //--------------------------------------------helper method for display ----------------------------
+
+    void printUserInfo(UserInfo* current){
+        std::cout << "User Input Data\n";
+        std::cout << "----------------------------------------\n";
+        std::cout << "Gender: " << current->gender << "\n";
+        std::cout << "Age: " << current->age << " years\n";
+        std::cout << "Weight: " << current->weight << " kg\n";
+        std::cout << "Waist: " << current->waist << " cm\n";
+        std::cout << "Neck: " << current->neck << " cm\n";
+        std::cout << "Height: " << current->height << " cm\n";
+        std::cout << "Lifestyle: " << current->lifestyle << "\n";
+
+        if (current->gender == "female")
+        {
+            std::cout << "Hip: " << current->hip << " cm\n";
+        }
+        std::cout << "----------------------------------------\n";
+        std::cout << "User Health Profile\n";
+        std::cout << "----------------------------------------\n";
+        
+        
+        std::cout << "Body Fat Percentage: " << current->bfp << "% (" << current->bfp_category << ")" << std::endl;
+       
+        std::cout << "Daily Caloric Intake Suggestion: " << current->calories << " calories " << std::endl;
+    
+        std::cout << "Macronutrient Breakdown:\n";
+        std::cout << "Carbs: " << current->carbs << "g, Protein: " << current->protein << "g, Fat : " << current->fat << " g " << std::endl;
     }; 
-
-
-
-    //todo: other stuff to print 
-
 
 private: 
     UserInfo*  mylist; // pointer to first element in linked list
     UserInfo*  tail; // pointer to last element in linked list
 
+  
 //----------------------------------------------------helper methods for gathering user input ------------------------------------------------
     // Function to clear the input buffer
     void clearInputBuffer()
@@ -379,6 +429,10 @@ public:
     
     void deleteUser(std::string username){
         manager.deleteUser(username);
+    };
+
+    void readFromFile(std::string filename){
+        manager.readFromFile(filename);
     };
 
 
@@ -450,7 +504,7 @@ public:
             return;
         }
 
-        int calories_input = user->calories; // Default calorie requirement
+        double calories_input = user->calories; // Default calorie requirement
         // Calculate the caloric intake for each macronutrient
         double calories_for_carbs = 0.50 * calories_input;   // 50% of total calories
         double calories_for_protein = 0.30 * calories_input; // 30% of total calories
@@ -552,6 +606,10 @@ private:
         {
             return "high";
         }
+        else if (bfp >= highThreshold)
+        {
+            return "very high";
+        }
 
         return "undefined";
     }
@@ -561,4 +619,20 @@ int main()
 {
     HealthAssistant ha;
     ha.getUserDetail();
-}; 
+    ha.getUserDetail();
+    ha.display("john");
+    ha.display("all");
+    ha.getBfp("john"); 
+    ha.getDailyCalories("john");
+    ha.getMealPrep("john");
+    ha.serialize("user_data2.csv"); 
+    
+    HealthAssistant ha2; 
+    ha2.readFromFile("user_data2.csv");
+    ha2.display("all");
+
+    ha2.deleteUser("jack");
+    ha2.display("all");
+
+    ha.display("all"); 
+}
