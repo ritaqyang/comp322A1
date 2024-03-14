@@ -180,6 +180,8 @@ public:
             delete current;
             current = next;
         }
+        mylist = nullptr;
+        tail = nullptr;
         std::ifstream file(filename);
         std::string line;
 
@@ -250,22 +252,23 @@ public:
         }
 
         UserInfo *current = mylist;
-        while (current != nullptr){
+        while (current != nullptr)
+        {
 
-            file << current->name << ", "
-                 << current->gender << ", "
-                 << current->age << ", "
-                 << current->weight << ", "
-                 << current->waist << ", "
-                 << current->neck << ", "
-                 << current->hip << ", "
-                 << current->height << ", "
-                 << current->lifestyle << ", "
-                 << current->bfp << ", "
-                 << current->bfp_category << ", "
-                 << current->calories << ", "
-                 << current->carbs << ", "
-                 << current->protein << ", "
+            file << current->name << ","
+                 << current->gender << ","
+                 << current->age << ","
+                 << current->weight << ","
+                 << current->waist << ","
+                 << current->neck << ","
+                 << current->hip << ","
+                 << current->height << ","
+                 << current->lifestyle << ","
+                 << current->bfp << ","
+                 << current->bfp_category << ","
+                 << current->calories << ","
+                 << current->carbs << ","
+                 << current->protein << ","
                  << current->fat << "\n";
 
             current = current->next;

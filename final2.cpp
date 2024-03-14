@@ -38,7 +38,11 @@ public:
         static UserInfoManager instance;
         return instance;
     }
-    
+    // Getter method for mylist, const indicates that it does not modify UserInfoManager object state 
+    UserInfo *getMyList() const
+    {
+        return mylist;
+    }
 
     //--------------------------------------------------add user info --------------------------------------------------------------------------
     void addUserInfo()
@@ -181,7 +185,6 @@ public:
     void readFromFile(std::string filename)
     {
         //delete current linkedlist 
-
         UserInfo *current = mylist;
         while (current != nullptr)
         {
@@ -189,6 +192,8 @@ public:
             delete current;
             current = next;
         }
+        mylist = nullptr;
+        tail = nullptr;
         std::ifstream file(filename);
         std::string line;
 
@@ -262,20 +267,20 @@ public:
         while (current != nullptr)
         {
 
-            file << current->name << ", "
-                 << current->gender << ", "
-                 << current->age << ", "
-                 << current->weight << ", "
-                 << current->waist << ", "
-                 << current->neck << ", "
-                 << current->hip << ", "
-                 << current->height << ", "
-                 << current->lifestyle << ", "
-                 << current->bfp << ", "
-                 << current->bfp_category << ", "
-                 << current->calories << ", "
-                 << current->carbs << ", "
-                 << current->protein << ", "
+            file << current->name << ","
+                 << current->gender << ","
+                 << current->age << ","
+                 << current->weight << ","
+                 << current->waist << ","
+                 << current->neck << ","
+                 << current->hip << ","
+                 << current->height << ","
+                 << current->lifestyle << ","
+                 << current->bfp << ","
+                 << current->bfp_category << ","
+                 << current->calories << ","
+                << current->carbs << ","
+                 << current->protein << ","
                  << current->fat << "\n";
 
             current = current->next;
@@ -502,12 +507,25 @@ public:
         user->fat = calories_for_fat / 9;         // 1 gram of fat = 9 calories
     };
 
+
+    //------------------------------Mass Load and Compute --------------------------------------------------------------
+    void massLoadAndCompute(std::string filename)
+    {
+        manager.readFromFile(filename);
+        UserInfo *current = manager.getMyList();
+        while (current != nullptr)
+        {
+            getBfp(current->name);
+            getDailyCalories(current->name);
+            getMealPrep(current->name);
+            current = current->next;
+        }
+    };
 private:
     UserInfoManager& manager; 
 
         //--------------------------------------------helper methods--------------------------------
-        std::pair<int, std::string>
-        get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
+    std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
     {
         double bfp;
         std::string category;
@@ -611,6 +629,7 @@ int main()
 
     std::cout << "\n>>displaying all user health profile\n\n";
     ha.display("all");
+    ha.serialize("user_data.csv");
 
     std::cout << "\n>getting john, jack, mary's bfp, daily calories, mealprep info\n\n";
     ha.getBfp("john");
@@ -643,5 +662,10 @@ int main()
     ha2.display("all");
 
     std::cout << "\n>Displaying all from first ha object\n\n";
+    ha.display("all");
+
+    std::cout << "\n> Mass Load and compute from user_data.csv\n\n";
+
+    ha.massLoadAndCompute("user_data.csv");
     ha.display("all");
 }
