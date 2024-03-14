@@ -99,6 +99,8 @@ public:
             std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
             newUser->hip = getValidatedDouble();
         }
+        else{newUser->hip = 0; } // assign default 0
+
         if (mylist == nullptr){
             mylist = newUser; 
             tail = newUser; 
@@ -125,6 +127,8 @@ public:
                 } else {
                     prev->next = current->next; 
                 }
+                std::cout << "*************************DELETE USER *********************************\n"; 
+                std::cout << "                User: " << username << " is deleted                 \n";
                 delete current;
                 break;
             }
@@ -133,7 +137,7 @@ public:
         }
     };
     
-    //----------------------------------------------------display user info --------------------------------------------------------------
+    //-----------------------------------------display user info -------------------------------
     void display(std::string username)
     {
 
@@ -141,11 +145,14 @@ public:
         //case when input == "all"
 
         if (username == "all"){
+            std::cout << "\n*************************DISPLAYING ALL USERS**********************\n\n"; 
+
             while (current != nullptr)
             {
                 printUserInfo(current);
                 current = current->next;
             }
+            std::cout << "\n*************************END OF DISPLAY OF ALL USERS***************\n\n";
             return;
         }
 
@@ -153,14 +160,16 @@ public:
         UserInfo* user = findUser(username); 
         if (user == nullptr)
         {
-            std::cout << "User not found\n";
+            std::cout << "ERROR: Display(username) is called, User: "<< username<<" is not found\n";
             return;
         }
         else{
+            std::cout << "\n*************************DISPLAYING SELECTED USER*******************\n\n";
             printUserInfo(user);
+            std::cout << "\n**********************END OF DISPLAY OF SELECTED USER***************\n";
         }
     };
-    //-------------------------------------------read from file -----------------------------------------------------------------------------------
+    //-----------------------------------read from file ----------------------------------------------
     void readFromFile(std::string filename){
         
         std::ifstream file(filename);
@@ -176,97 +185,44 @@ public:
         {
             std::stringstream lineStream(line);
             std::string cell;
-            UserInfo *newNode = new UserInfo(); 
+            UserInfo* user = new UserInfo(); 
 
-            // CSV columns are ordered as gender, age, weight, waist, neck, hip, height, lifestyle
-            // Use try and catch blocks to handle possible exceptions
-            getline(lineStream, newNode->gender, ',');
+            std::vector<std::string> cells;
+            while (std::getline(lineStream, cell, ','))
+            {
+                cells.push_back(cell);
+            }
+
+            // Assign values to UserInfo object
+            if (cells.size() >= 15)
+            {
+                user->name = cells[0];
+                user->gender = cells[1];
+                user->age = std::stoi(cells[2]);
+                user->weight = std::stod(cells[3]);
+                user->waist = std::stod(cells[4]);
+                user->neck = std::stod(cells[5]);
+                user->hip = std::stod(cells[6]);
+                user->height = std::stod(cells[7]);
+                user->lifestyle = cells[8];
+                user->bfp = std::stod(cells[9]);
+                user->bfp_category = cells[10];
+                user->calories = std::stod(cells[11]);
+                user->carbs = std::stod(cells[12]);
+                user->protein = std::stod(cells[13]);
+                user->fat = std::stod(cells[14]);
+            }
+
+            user->next = nullptr;
+            if (mylist == nullptr){
+                mylist = user; 
+                tail = user; 
+            } else {
+                tail->next = user; 
+                tail = user;
+            }
+
             
-            
-            //get age 
-            getline(lineStream, cell, ',');
-            try
-            {
-                newNode->age = std::stoi(cell);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Conversion error for age: '" << cell << "': " << e.what() << std::endl;
-            }
-
-            //get weight
-            getline(lineStream, cell, ',');
-            try
-            {
-                newNode->weight = std::stod(cell);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Conversion error for weight: '" << cell << "': " << e.what() << std::endl;
-            }
-
-
-            //get waist 
-            getline(lineStream, cell, ',');
-            try
-            {
-                newNode->waist = std::stod(cell);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Conversion error for waist : '" << cell << "': " << e.what() << std::endl;
-            }
-
-            //get neck
-            getline(lineStream, cell, ',');
-            try
-            {
-                newNode->neck = std::stod(cell);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Conversion error for neck: '" << cell << "': " << e.what() << std::endl;
-            }
-
-
-            //get hip 
-            getline(lineStream, cell, ',');
-            try
-            {
-                newNode->hip = std::stod(cell);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Conversion error for hip '" << cell << "': " << e.what() << std::endl;
-                newNode->hip = 0; // assign default 0 for male users
-            }
-
-            //get height 
-            getline(lineStream, cell, ',');
-            try
-            {
-                newNode->height = std::stod(cell);
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "Conversion error for height: '" << cell << "': " << e.what() << std::endl;
-            }
-
-            //get lifestyle 
-            getline(lineStream, newNode->lifestyle, ',');
-
-            // add the new node to the end of the linked list 
-            newNode->next = nullptr;
-            if (mylist == nullptr)
-            {
-                mylist = newNode;
-                tail = newNode;
-            }
-            else
-            {
-                tail->next = newNode;
-                tail = newNode;
-            }
         }
 
         file.close();
@@ -277,8 +233,6 @@ public:
     void writeToFile(std::string filename)
     {
         std::ofstream file;
-
-        // Open the file in append mode
         file.open(filename, std::ios_base::app);
 
         if (!file.is_open())
@@ -290,24 +244,21 @@ public:
         UserInfo *current = mylist;
         while (current != nullptr){
 
-            file << current->gender << ", "
-                << current->age << ", "
-                << current->weight << ", "
-                << current->waist << ", "
-                << current->neck << ", ";
-
-            // Conditionally add hip measurement for female users
-            if (current->gender == "female")
-            {
-                file << current->hip << ", ";
-            }
-            else
-            {
-                file << ", "; // Leave hip empty for male users
-            }
-
-            file << current->height << ", "
-                << current->lifestyle << "\n";
+            file << current->name << ", "
+                 << current->gender << ", "
+                 << current->age << ", "
+                 << current->weight << ", "
+                 << current->waist << ", "
+                 << current->neck << ", "
+                 << current->hip << ", "
+                 << current->height << ", "
+                 << current->lifestyle << ", "
+                 << current->bfp << ", "
+                 << current->bfp_category << ", "
+                 << current->calories << ", "
+                 << current->carbs << ", "
+                 << current->protein << ", "
+                 << current->fat << "\n";
 
             current = current->next;
         }
@@ -334,8 +285,10 @@ public:
     //--------------------------------------------helper method for display ----------------------------
 
     void printUserInfo(UserInfo* current){
-        std::cout << "User Input Data\n";
-        std::cout << "----------------------------------------\n";
+        std::cout << "------------------------------------------------\n";
+        std::cout << "         Health Profile for " << current->name<< "\n";
+        std::cout << "------------------------------------------------\n";
+        std::cout << "Username: " << current->name << "\n";
         std::cout << "Gender: " << current->gender << "\n";
         std::cout << "Age: " << current->age << " years\n";
         std::cout << "Weight: " << current->weight << " kg\n";
@@ -348,17 +301,14 @@ public:
         {
             std::cout << "Hip: " << current->hip << " cm\n";
         }
-        std::cout << "----------------------------------------\n";
-        std::cout << "User Health Profile\n";
-        std::cout << "----------------------------------------\n";
         
-        
-        std::cout << "Body Fat Percentage: " << current->bfp << "% (" << current->bfp_category << ")" << std::endl;
+        std::cout << "Body Fat Percentage: " << current->bfp << "% (bfp-category: " << current->bfp_category << ")" << std::endl;
        
-        std::cout << "Daily Caloric Intake Suggestion: " << current->calories << " calories " << std::endl;
+        std::cout << "Daily Caloric Intake Suggestion: " << current->calories << " cal " << std::endl;
     
         std::cout << "Macronutrient Breakdown:\n";
         std::cout << "Carbs: " << current->carbs << "g, Protein: " << current->protein << "g, Fat : " << current->fat << " g " << std::endl;
+        std::cout << "------------------------------------------------\n";
     }; 
 
 private: 
@@ -447,6 +397,8 @@ public:
         }
 
         std::pair<int, std::string> bfp = get_bfp(user->waist, user->neck, user->height, user->hip,user->gender,user->age); 
+        user->bfp = bfp.first;
+        user->bfp_category = bfp.second;
     }; 
 
 
@@ -488,7 +440,7 @@ public:
 
         user->calories = cal; 
 
-        std::cout << "Daily calorie requirement for " << username << " is: " << cal << " calories\n";
+        //std::cout << "Daily calorie requirement for " << username << " is: " << cal << " calories\n";
 
     }
 
@@ -620,19 +572,44 @@ int main()
     HealthAssistant ha;
     ha.getUserDetail();
     ha.getUserDetail();
+    ha.getUserDetail();
+
+    std::cout << "\n>displaying john's health profile\n\n"; 
     ha.display("john");
+
+    std::cout << "\n>>displaying all user health profile\n\n";
     ha.display("all");
+
+    std::cout << "\n>getting john, jack, mary's bfp, daily calories, mealprep info\n\n";
     ha.getBfp("john"); 
     ha.getDailyCalories("john");
     ha.getMealPrep("john");
-    ha.serialize("user_data2.csv"); 
-    
-    HealthAssistant ha2; 
+    ha.getBfp("jack");
+    ha.getDailyCalories("jack");
+    ha.getMealPrep("jack");
+    ha.getBfp("mary");
+    ha.getDailyCalories("mary");
+    ha.getMealPrep("mary");
+
+    std::cout << "\n>storing current info to user_data2.csv\n\n";
+    ha.serialize("user_data2.csv");
+
+    std::cout << "\n>Initializing new HealthAssistant object\n\n";
+    HealthAssistant ha2;
+
+    std::cout << "\n>Reading from file user_data2.csv\n\n";
     ha2.readFromFile("user_data2.csv");
+
+    std::cout << "\n>Displaying all user profiles\n\n"; 
     ha2.display("all");
+
+    std::cout << "\n>Deleting jack's profile \n\n";
 
     ha2.deleteUser("jack");
+
+    std::cout << "\n>Display all after deleting jack\n\n"; 
     ha2.display("all");
 
-    ha.display("all"); 
+    std::cout << "\n>Displaying all from first ha object\n\n"; 
+    ha.display("all");
 }
