@@ -5,8 +5,8 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
-
-
+//Assignment2 enhanced version 
+//Implemented code changes to ensure that all instances of HealthAssitant class share the same linkedlist managed by UserInfoManager
 struct UserInfo
 {
     std::string gender;
@@ -17,36 +17,34 @@ struct UserInfo
     double hip;
     double height;
     double bfp;
-    std::string bfp_category; 
+    std::string bfp_category;
     double calories;
     double carbs;
     double protein;
-    double fat; 
+    double fat;
     std::string lifestyle;
-    std::string name; 
-    UserInfo* next; 
+    std::string name;
+    UserInfo *next;
 };
 
-class UserInfoManager {
+class UserInfoManager
+{
 
 public:
-    UserInfoManager(){
-        mylist = nullptr; 
-        tail = nullptr;
-    }; // constructor 
-    ~UserInfoManager(){
-        UserInfo* current = mylist; 
-        while(current != nullptr){
-            UserInfo* next = current->next; 
-            delete current; 
-            current = next; 
-        }
-    }; // destructor, delete allocated memory
+
+    // Static method to get the singleton instance
+    static UserInfoManager& getInstance()
+    {
+        static UserInfoManager instance;
+        return instance;
+    }
+    
 
     //--------------------------------------------------add user info --------------------------------------------------------------------------
-    void addUserInfo(){
+    void addUserInfo()
+    {
 
-        UserInfo* newUser = new UserInfo(); // create new userInfo object
+        UserInfo *newUser = new UserInfo(); // create new userInfo object
 
         std::cout << "Please enter your username: \n";
         std::getline(std::cin, newUser->name);
@@ -88,7 +86,7 @@ public:
         while (true)
         {
             std::getline(std::cin, newUser->lifestyle);
-            if (newUser->lifestyle == "sedentary" || newUser->lifestyle == "moderate" ||newUser->lifestyle == "active")
+            if (newUser->lifestyle == "sedentary" || newUser->lifestyle == "moderate" || newUser->lifestyle == "active")
             {
                 break;
             }
@@ -99,53 +97,62 @@ public:
             std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
             newUser->hip = getValidatedDouble();
         }
-        else{newUser->hip = 0; } // assign default 0
+        else
+        {
+            newUser->hip = 0;
+        } // assign default 0
 
-        if (mylist == nullptr){
-            mylist = newUser; 
-            tail = newUser; 
-            newUser->next = nullptr; 
-        
+        if (mylist == nullptr)
+        {
+            mylist = newUser;
+            tail = newUser;
+            newUser->next = nullptr;
         }
-        else{
+        else
+        {
             tail->next = newUser;
             tail = newUser;
             newUser->next = nullptr;
         }
-        
     };
 
-        //----------------------------------------------- delete user -----------------------------------------------------------
+    //----------------------------------------------- delete user -----------------------------------------------------------
     void deleteUser(std::string username)
     {
-        UserInfo* current = mylist; 
-        UserInfo* prev = nullptr; 
-        while(current != nullptr){
-            if(current->name == username){
-                if(prev == nullptr){
-                    mylist = current->next; 
-                } else {
-                    prev->next = current->next; 
+        UserInfo *current = mylist;
+        UserInfo *prev = nullptr;
+        while (current != nullptr)
+        {
+            if (current->name == username)
+            {
+                if (prev == nullptr)
+                {
+                    mylist = current->next;
                 }
-                std::cout << "*************************DELETE USER *********************************\n"; 
+                else
+                {
+                    prev->next = current->next;
+                }
+                std::cout << "*************************DELETE USER *********************************\n";
                 std::cout << "                User: " << username << " is deleted                 \n";
                 delete current;
                 break;
             }
-            prev = current; 
-            current = current->next; 
+            prev = current;
+            current = current->next;
         }
     };
-    
+
     //-----------------------------------------display user info -------------------------------
     void display(std::string username)
     {
 
         UserInfo *current = mylist;
-        //case when input == "all"
+        // case when input == "all"
 
-        if (username == "all"){
-            std::cout << "\n*************************DISPLAYING ALL USERS**********************\n\n"; 
+        if (username == "all")
+        {
+            std::cout << "\n*************************DISPLAYING ALL USERS**********************\n\n";
 
             while (current != nullptr)
             {
@@ -156,22 +163,24 @@ public:
             return;
         }
 
-        //other case where we find the user
-        UserInfo* user = findUser(username); 
+        // other case where we find the user
+        UserInfo *user = findUser(username);
         if (user == nullptr)
         {
-            std::cout << "ERROR: Display(username) is called, User: "<< username<<" is not found\n";
+            std::cout << "ERROR: Display(username) is called, User: " << username << " is not found\n";
             return;
         }
-        else{
+        else
+        {
             std::cout << "\n*************************DISPLAYING SELECTED USER*******************\n\n";
             printUserInfo(user);
             std::cout << "\n**********************END OF DISPLAY OF SELECTED USER***************\n";
         }
     };
     //-----------------------------------read from file ----------------------------------------------
-    void readFromFile(std::string filename){
-        // delete current linkedlist
+    void readFromFile(std::string filename)
+    {
+        //delete current linkedlist 
 
         UserInfo *current = mylist;
         while (current != nullptr)
@@ -193,7 +202,7 @@ public:
         {
             std::stringstream lineStream(line);
             std::string cell;
-            UserInfo* user = new UserInfo(); 
+            UserInfo *user = new UserInfo();
 
             std::vector<std::string> cells;
             while (std::getline(lineStream, cell, ','))
@@ -222,26 +231,26 @@ public:
             }
 
             user->next = nullptr;
-            if (mylist == nullptr){
-                mylist = user; 
-                tail = user; 
-            } else {
-                tail->next = user; 
+            if (mylist == nullptr)
+            {
+                mylist = user;
                 tail = user;
             }
-
-            
+            else
+            {
+                tail->next = user;
+                tail = user;
+            }
         }
 
         file.close();
-    }; 
+    };
 
-
-//------------------------------------------------------write to file ----------------------------------------------------------------
+    //------------------------------------------------------write to file ----------------------------------------------------------------
     void writeToFile(std::string filename)
     {
         std::ofstream file;
-        file.open(filename, std::ios_base::trunc);//overwrite the file 
+        file.open(filename, std::ios_base::trunc);//overwrite 
 
         if (!file.is_open())
         {
@@ -250,7 +259,8 @@ public:
         }
 
         UserInfo *current = mylist;
-        while (current != nullptr){
+        while (current != nullptr)
+        {
 
             file << current->name << ", "
                  << current->gender << ", "
@@ -289,12 +299,12 @@ public:
         return nullptr;
     };
 
-    
     //--------------------------------------------helper method for display ----------------------------
 
-    void printUserInfo(UserInfo* current){
+    void printUserInfo(UserInfo *current)
+    {
         std::cout << "------------------------------------------------\n";
-        std::cout << "         Health Profile for " << current->name<< "\n";
+        std::cout << "         Health Profile for " << current->name << "\n";
         std::cout << "------------------------------------------------\n";
         std::cout << "Username: " << current->name << "\n";
         std::cout << "Gender: " << current->gender << "\n";
@@ -309,22 +319,39 @@ public:
         {
             std::cout << "Hip: " << current->hip << " cm\n";
         }
-        
+
         std::cout << "Body Fat Percentage: " << current->bfp << "% (bfp-category: " << current->bfp_category << ")" << std::endl;
-       
+
         std::cout << "Daily Caloric Intake Suggestion: " << current->calories << " cal " << std::endl;
-    
+
         std::cout << "Macronutrient Breakdown:\n";
         std::cout << "Carbs: " << current->carbs << "g, Protein: " << current->protein << "g, Fat : " << current->fat << " g " << std::endl;
         std::cout << "------------------------------------------------\n";
-    }; 
+    };
 
-private: 
-    UserInfo*  mylist; // pointer to first element in linked list
-    UserInfo*  tail; // pointer to last element in linked list
+private:
+    UserInfo* mylist; // pointer to first element in linked list
+    UserInfo* tail;   // pointer to last element in linked list
 
-  
-//----------------------------------------------------helper methods for gathering user input ------------------------------------------------
+    UserInfoManager()
+    {
+        mylist = nullptr;
+        tail = nullptr;
+    }; // private constructor(singleton)
+    ~UserInfoManager()
+    {
+        UserInfo *current = mylist;
+        while (current != nullptr)
+        {
+            UserInfo *next = current->next;
+            delete current;
+            current = next;
+        }
+    }; // destructor, delete allocated memory
+    UserInfoManager(UserInfoManager &);// private copy constructor
+    UserInfoManager operator =(UserInfoManager &); // private assignment operator
+
+    //----------------------------------------------------helper methods for gathering user input ------------------------------------------------
     // Function to clear the input buffer
     void clearInputBuffer()
     {
@@ -359,44 +386,45 @@ private:
     };
 };
 
-
-//wrapper methods: getUserDetail, display, serialize, readfromFile, deleteUser 
-//Implementations are provided by the UserInfoManager class 
-class HealthAssistant {
+// wrapper methods: getUserDetail, display, serialize, readfromFile, deleteUser
+// Implementations are provided by the UserInfoManager class
+class HealthAssistant
+{
 
 public:
+    HealthAssistant(): manager(UserInfoManager::getInstance()){}; // constructor obtains singleton instance of UserInfoManager
 
-    HealthAssistant(){
-    }; //constructor
-    
     //-----------------------wrapper methods ----------------------------------------------------------------
-    
 
-    void getUserDetail(){
+    void getUserDetail()
+    {
         manager.addUserInfo();
     };
 
-    void serialize(std::string filename){
+    void serialize(std::string filename)
+    {
         manager.writeToFile(filename);
-    }; //wrapper method
+    }; // wrapper method
 
-    void display(std::string username){
+    void display(std::string username)
+    {
         manager.display(username);
-    }; //wrapper method
-    
-    
-    void deleteUser(std::string username){
+    }; // wrapper method
+
+    void deleteUser(std::string username)
+    {
         manager.deleteUser(username);
     };
 
-    void readFromFile(std::string filename){
+    void readFromFile(std::string filename)
+    {
         manager.readFromFile(filename);
     };
 
-
     //------------------------------getBFP ----------------------------------------------------------------
 
-    void getBfp(std::string username){
+    void getBfp(std::string username)
+    {
         UserInfo *user = manager.findUser(username);
         if (user == nullptr)
         {
@@ -404,11 +432,10 @@ public:
             return;
         }
 
-        std::pair<int, std::string> bfp = get_bfp(user->waist, user->neck, user->height, user->hip,user->gender,user->age); 
+        std::pair<int, std::string> bfp = get_bfp(user->waist, user->neck, user->height, user->hip, user->gender, user->age);
         user->bfp = bfp.first;
         user->bfp_category = bfp.second;
-    }; 
-
+    };
 
     //-------------------------get daily calories------------------------------------------------------------
 
@@ -446,16 +473,15 @@ public:
             cal += 300 * activity; // For each activity level, add 300 cal
         }
 
-        user->calories = cal; 
+        user->calories = cal;
 
-        //std::cout << "Daily calorie requirement for " << username << " is: " << cal << " calories\n";
-
+        // std::cout << "Daily calorie requirement for " << username << " is: " << cal << " calories\n";
     }
-
 
     //------------------------------meal prep --------------------------------------------------------------
 
-    void getMealPrep(std::string username){
+    void getMealPrep(std::string username)
+    {
 
         UserInfo *user = manager.findUser(username);
         if (user == nullptr)
@@ -474,16 +500,14 @@ public:
         user->carbs = calories_for_carbs / 4;     // 1 gram of carbs = 4 calories
         user->protein = calories_for_protein / 4; // 1 gram of protein = 4 calories
         user->fat = calories_for_fat / 9;         // 1 gram of fat = 9 calories
-
-    
     };
 
-
 private:
-    UserInfoManager manager; 
+    UserInfoManager& manager; 
 
-    //--------------------------------------------helper methods--------------------------------
-    std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
+        //--------------------------------------------helper methods--------------------------------
+        std::pair<int, std::string>
+        get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
     {
         double bfp;
         std::string category;
@@ -582,14 +606,14 @@ int main()
     ha.getUserDetail();
     ha.getUserDetail();
 
-    std::cout << "\n>displaying john's health profile\n\n"; 
+    std::cout << "\n>displaying john's health profile\n\n";
     ha.display("john");
 
     std::cout << "\n>>displaying all user health profile\n\n";
     ha.display("all");
 
     std::cout << "\n>getting john, jack, mary's bfp, daily calories, mealprep info\n\n";
-    ha.getBfp("john"); 
+    ha.getBfp("john");
     ha.getDailyCalories("john");
     ha.getMealPrep("john");
     ha.getBfp("jack");
@@ -608,16 +632,16 @@ int main()
     std::cout << "\n>Reading from file user_data2.csv\n\n";
     ha2.readFromFile("user_data2.csv");
 
-    std::cout << "\n>Displaying all user profiles\n\n"; 
+    std::cout << "\n>Displaying all user profiles\n\n";
     ha2.display("all");
 
     std::cout << "\n>Deleting jack's profile \n\n";
 
     ha2.deleteUser("jack");
 
-    std::cout << "\n>Display all after deleting jack\n\n"; 
+    std::cout << "\n>Display all after deleting jack\n\n";
     ha2.display("all");
 
-    std::cout << "\n>Displaying all from first ha object\n\n"; 
+    std::cout << "\n>Displaying all from first ha object\n\n";
     ha.display("all");
 }
