@@ -17,21 +17,7 @@ struct UserData
     double hip;
     double height;
     std::string lifestyle;
-    UserData* next; 
 };
-
-class UserInfoManager{
-    public:
-        UserInfoManager(); //constructor 
-        ~UserInfoManager(); // destructor, delete allocated memory 
-        void addUserInfo(); // addes info to list 
-        void deleteUser(std::string username); 
-        void readFromFile(std::string filename); //reads and populate list 
-        void writeToFile(std::string filename); 
-        void display(std::string username); 
-    private: 
-        UserData* mylist; // pointer to first element in linked list 
-}
 
 // Global variables
 std::string g_gender;
@@ -44,8 +30,6 @@ std::string g_lifestyle;
 double g_hip;                          // For female users
 std::map<std::string, int> calorieMap; // Global map that stores the suggested calorie intake values
 std::vector<UserData> users;           // For Q7, storing each line in one vector
-
-
 
 // Function to clear the input buffer
 void clearInputBuffer()
@@ -489,4 +473,3 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-
