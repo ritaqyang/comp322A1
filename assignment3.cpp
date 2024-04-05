@@ -2,11 +2,20 @@
 #include <string>
 #include <limits>
 #include <map>
-#include <fstream>
 #include <sstream>
 #include <cmath>
-// Assignment2 enhanced version
-// Implemented code changes to ensure that all instances of HealthAssitant class share the same linkedlist managed by UserInfoManager
+#include <vector>
+#include <fstream>
+#include <regex>
+
+
+//Assignment 3 Improvements:
+// 1. Using vector instead of linkedlist to manage users
+// 2. Exception handling for user inputs / age range / reading + writing file (file not found, empty file)
+// 3. HealthAssitant interface, 2 implmenting subclasses (different BFP methods) 
+// 4. new class UserStats that provide stats about users' health 
+
+
 struct UserInfo
 {
     std::string gender;
@@ -27,11 +36,6 @@ struct UserInfo
     UserInfo *next;
 };
 
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <regex>
 
 class UserInfoManager
 {
@@ -233,6 +237,15 @@ public:
                 throw std::runtime_error("Error opening file: " + filename);
             }
 
+            // Check if the file is empty
+            file.seekg(0, std::ios::end);
+            if (file.tellg() == 0)
+            {
+                throw std::runtime_error("Error: File is empty: " + filename);
+            }
+            // Reset the file position to the beginning
+            file.seekg(0, std::ios::beg);
+
             std::string line;
             while (getline(file, line))
             {
@@ -381,7 +394,7 @@ public:
     }
 
     // Function to get validated double input
-
+    //throws exception if input is not a valid double
     double getValidatedDouble()
     {
         double value;
@@ -395,7 +408,7 @@ public:
         catch (const std::ios_base::failure &e)
         {
             clearInputBuffer();
-            throw std::invalid_argument("Invalid input. Please enter a valid number.");
+            throw std::invalid_argument("Invalid input. Please enter a valid double.");
         }
     }
 };
