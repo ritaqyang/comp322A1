@@ -226,87 +226,101 @@ public:
         }
         userList.clear();
 
-        std::ifstream file(filename);
-        std::string line;
-
-        if (!file.is_open())
-        {
-            std::cerr << "Error opening file: " << filename << std::endl;
-            return;
-        }
-
-        while (getline(file, line))
-        {
-            std::stringstream lineStream(line);
-            std::string cell;
-            UserInfo *user = new UserInfo();
-
-            std::vector<std::string> cells;
-            while (std::getline(lineStream, cell, ','))
+        try{
+            std::ifstream file(filename);
+            if (!file.is_open())
             {
-                cells.push_back(cell);
+                throw std::runtime_error("Error opening file: " + filename);
             }
 
-            // Assign values to UserInfo object
-            if (cells.size() >= 15)
+            std::string line;
+            while (getline(file, line))
             {
-                user->name = cells[0];
-                user->gender = cells[1];
-                user->age = std::stoi(cells[2]);
-                user->weight = std::stod(cells[3]);
-                user->waist = std::stod(cells[4]);
-                user->neck = std::stod(cells[5]);
-                user->hip = std::stod(cells[6]);
-                user->height = std::stod(cells[7]);
-                user->lifestyle = cells[8];
-                user->bfp = std::stod(cells[9]);
-                user->bfp_category = cells[10];
-                user->calories = std::stod(cells[11]);
-                user->carbs = std::stod(cells[12]);
-                user->protein = std::stod(cells[13]);
-                user->fat = std::stod(cells[14]);
+                std::stringstream lineStream(line);
+                std::string cell;
+                UserInfo *user = new UserInfo();
+
+                std::vector<std::string> cells;
+                while (std::getline(lineStream, cell, ','))
+                {
+                    cells.push_back(cell);
+                }
+
+                // Assign values to UserInfo object
+                if (cells.size() >= 15)
+                {
+                    user->name = cells[0];
+                    user->gender = cells[1];
+                    user->age = std::stoi(cells[2]);
+                    user->weight = std::stod(cells[3]);
+                    user->waist = std::stod(cells[4]);
+                    user->neck = std::stod(cells[5]);
+                    user->hip = std::stod(cells[6]);
+                    user->height = std::stod(cells[7]);
+                    user->lifestyle = cells[8];
+                    user->bfp = std::stod(cells[9]);
+                    user->bfp_category = cells[10];
+                    user->calories = std::stod(cells[11]);
+                    user->carbs = std::stod(cells[12]);
+                    user->protein = std::stod(cells[13]);
+                    user->fat = std::stod(cells[14]);
+                }
+
+                userList.push_back(user);
             }
 
-            userList.push_back(user);
+            file.close();
         }
 
-        file.close();
+        catch (const std::exception &e)
+        {
+            std::cerr << "Error occured while calling readFromFile function in UserInfoManager, Error msg: " << e.what() << std::endl;
+        }
+
+        
     };
 
     //------------------------------------------------------write to file ----------------------------------------------------------------
     void writeToFile(const std::string &filename)
     {
-        std::ofstream file;
-        file.open(filename, std::ios_base::trunc); // overwrite
+        
 
-        if (!file.is_open())
-        {
-            std::cerr << "Error opening file: " << filename << "\n";
-            return;
+        try
+        {   
+            std::ofstream file;
+            file.open(filename, std::ios_base::trunc); // overwrite
+            if (!file.is_open())
+            {
+                throw std::runtime_error("Error opening file: " + filename);
+            }
+            
+
+            for (const auto &user : userList)
+            {
+                file << user->name << ","
+                     << user->gender << ","
+                     << user->age << ","
+                     << user->weight << ","
+                     << user->waist << ","
+                     << user->neck << ","
+                     << user->hip << ","
+                     << user->height << ","
+                     << user->lifestyle << ","
+                     << user->bfp << ","
+                     << user->bfp_category << ","
+                     << user->calories << ","
+                     << user->carbs << ","
+                     << user->protein << ","
+                     << user->fat << "\n";
+            }
+
+            file.close();
         }
-
-        for (const auto &user : userList)
+        catch (const std::exception &e)
         {
-            file << user->name << ","
-                 << user->gender << ","
-                 << user->age << ","
-                 << user->weight << ","
-                 << user->waist << ","
-                 << user->neck << ","
-                 << user->hip << ","
-                 << user->height << ","
-                 << user->lifestyle << ","
-                 << user->bfp << ","
-                 << user->bfp_category << ","
-                 << user->calories << ","
-                 << user->carbs << ","
-                 << user->protein << ","
-                 << user->fat << "\n";
+            std::cerr << "Error occured while calling writeToFile function in UserInfoManager, Error msg: "<< e.what() << std::endl;
         }
-
-        file.close();
-    };
-
+    }
 
     //--------------------------------------------helper method for display ----------------------------
 
