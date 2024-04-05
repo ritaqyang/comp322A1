@@ -7,6 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <regex>
+#include <unordered_set>
 
 
 //Assignment 3 Improvements:
@@ -531,6 +532,18 @@ public:
         }
     };
 
+    //--------------------------------Mass Compute --------------------------------------------------------------
+    void massCompute()
+    {
+        std::vector<UserInfo *> &userList = manager.getUserList();
+        for (auto current : userList)
+        {
+            getBfp(current->name);
+            getDailyCalories(current->name);
+            getMealPrep(current->name);
+        }
+    };
+
 protected:
     UserInfoManager &manager;
 
@@ -733,7 +746,286 @@ public:
 }; 
                
 
+//UserStats class 
+//Methods: GetHealthyUsers, GetUnfitUsers, GetFullStats
 
+class UserStats
+{
+
+public:
+    UserStats() : manager(UserInfoManager::getInstance()){}; // constructor obtains singleton instance of UserInfoManager
+
+    // Method to add a user's health statistics
+    void addUserStats(const std::string &name, double bfp);
+
+    // -----------------------------------GetHealthyUsers -------------------------------------------
+    //returns a vector contaitning all normal bfp 
+    //method can be US army or bmi, if "all" then both methods should output healthy 
+    std::vector<std::string> getHealthyUsers(const std::string &method, const std::string &gender){
+        std::pair<std::vector<std::string>, std::vector<std::string>> Navy; 
+        std::pair<std::vector<std::string>, std::vector<std::string>> Bmi;
+        std::vector<std::string> result; 
+
+        if (method == "all"){
+            Navy = getHealthyBFPUsersByMethod("USArmy");
+            Bmi = getHealthyBFPUsersByMethod("bmi");
+            if (gender ==  "female"){
+                result = intersect (Navy.first, Bmi.first); 
+            }
+            else if (gender == "male"){
+                result = intersect (Navy.second, Bmi.second);
+            }
+            else if (gender.empty()) {
+                result = combine(intersect (Navy.first, Bmi.first), intersect (Navy.second, Bmi.second));
+            }
+            else{
+                throw std::invalid_argument("Unknown gender");
+            }
+        }
+
+        else if (method == "USArmy" || method == "bmi"){
+            result = genderFilter(getHealthyBFPUsersByMethod(method), gender);
+        }
+        else{
+            throw std::invalid_argument("Invalid method, please enter 'USArmy' or 'bmi' or 'all' \n");
+        }
+            
+        return result;
+    }; 
+
+
+    // ------------------------------------GetUnfitUsers method ---------------------------------------------------------------
+    std::vector<std::string> getUnfitUsers(const std::string &method, const std::string &gender){
+        std::pair<std::vector<std::string>, std::vector<std::string>> Navy;
+        std::pair<std::vector<std::string>, std::vector<std::string>> Bmi;
+        std::vector<std::string> result;
+
+        if (method == "all"){
+            Navy = getUnHealthyBFPUsersByMethod("USArmy"); //use helper method twice for both methods
+            Bmi = getUnHealthyBFPUsersByMethod("bmi");
+            if (gender == "female")
+            {
+                result = intersect(Navy.first, Bmi.first);
+            }
+            else if (gender == "male")
+            {
+                result = intersect(Navy.second, Bmi.second);
+            }
+            else if (gender.empty())
+            {
+                result = combine(intersect(Navy.first, Bmi.first), intersect(Navy.second, Bmi.second));
+            }
+            else
+            {
+                throw std::invalid_argument("Unknown gender");
+            }
+        }
+
+        else if (method == "USArmy" || method == "bmi") //if just one method, only run the helper once on either option
+        {
+            result = genderFilter(getUnHealthyBFPUsersByMethod(method), gender);
+        }
+        else //method is not either 3 options
+        {
+            throw std::invalid_argument("Invalid method, please enter 'USArmy' or 'bmi' or 'all' \n");
+        }
+
+        return result;
+
+    }; 
+
+    // -------------------------------------------GetFullStats method-------------------------------------------------
+    void getFullStats(){
+        
+        int totalMaleUsers = 0;
+        int totalFemaleUsers = 0;
+        std::pair<std::vector<std::string>, std::vector<std::string>> Navy = getHealthyBFPUsersByMethod("UsArmy"); 
+        std::pair<std::vector<std::string>, std::vector<std::string>> Bmi = getHealthyBFPUsersByMethod("bmi");
+
+        
+        int totalHealthyFemalesBmi = Bmi.first.size(); 
+        int totalHealthyMalesBmi = Bmi.second.size();
+        int totalHealthyFemalesUsArmy = Navy.first.size();
+        int totalHealthyMalesUsArmy = Navy.second.size();
+
+        int totalHealthyUsersBmi = totalHealthyFemalesBmi  + totalHealthyMalesBmi;
+        int totalHealthyUsersUsArmy = totalHealthyFemalesUsArmy + totalHealthyMalesUsArmy; 
+
+        // Calculate statistics
+        for (const auto *user : manager.getUserList())
+        {
+            (user->gender == "male")? totalMaleUsers += 1 : totalFemaleUsers += 1;
+            
+        }
+        int totalUsers = totalMaleUsers + totalFemaleUsers;
+
+        // Calculate percentages
+        double percentageMaleUsers = static_cast<double>(totalMaleUsers) / totalUsers * 100;
+        double percentageFemaleUsers = static_cast<double>(totalFemaleUsers) / totalUsers * 100;
+        double percentageHealthyUsersBmi = static_cast<double>(totalHealthyUsersBmi) / totalUsers * 100;
+        double percentageHealthyUsersUsArmy = static_cast<double>(totalHealthyUsersUsArmy) / totalUsers * 100;
+        double percentageHealthyFemalesBmi = static_cast<double>(totalHealthyFemalesBmi) / totalFemaleUsers * 100;
+        double percentageHealthyMalesBmi = static_cast<double>(totalHealthyMalesBmi) / totalMaleUsers * 100;
+        double percentageHealthyFemalesUsArmy = static_cast<double>(totalHealthyFemalesUsArmy) / totalFemaleUsers * 100;
+        double percentageHealthyMalesUsArmy = static_cast<double>(totalHealthyMalesUsArmy) / totalMaleUsers * 100;
+
+        // Display stats 
+        std::cout << "Total number of users: " << totalUsers << std::endl;
+        std::cout << "Percentage of male users: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageMaleUsers << "%" << std::endl;
+        std::cout << "Percentage of female users: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageFemaleUsers << "%" << std::endl;
+        std::cout << "Percentage of healthy users according to BMI method: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageHealthyUsersBmi << "%" << std::endl;
+        std::cout << "Percentage of healthy users according to US Army method: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageHealthyUsersUsArmy << "%" << std::endl;
+        std::cout << "Percentage of healthy females according to BMI method: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageHealthyFemalesBmi << "%" << std::endl;
+        std::cout << "Percentage of healthy males according to BMI method: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageHealthyMalesBmi << "%" << std::endl;
+        std::cout << "Percentage of healthy females according to US Army method: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageHealthyFemalesUsArmy << "%" << std::endl;
+        std::cout << "Percentage of healthy males according to US Army method: " << std::setw(5) << std::fixed << std::setprecision(2) << percentageHealthyMalesUsArmy << "%" << std::endl;
+    };
+
+private:
+    UserInfoManager &manager; 
+
+    //--------------------------------helper methods for UserStats class --------------------------------
+
+    // ---------------------------Method to get the intersection of two vectors--------------------------------
+    std::vector<std::string> intersect(const std::vector<std::string> &vec1, const std::vector<std::string> &vec2)
+    {
+        std::unordered_set<std::string> set1(vec1.begin(), vec1.end());
+
+        std::vector<std::string> result;
+        for (const auto &str : vec2)
+        {
+            if (set1.find(str) != set1.end())
+            {
+                result.push_back(str);
+            }
+        }
+        return result;
+    }
+
+    //  ----------------------------Method to combine two vector of strings ----------------------------
+    std::vector<std::string> combine(const std::vector<std::string> &vec1, const std::vector<std::string> &vec2)
+    {
+        std::vector<std::string> combinedVec;
+
+        // Add elements from vec1
+        for (const auto &str : vec1)
+        {
+            combinedVec.push_back(str);
+        }
+
+        // Add elements from vec2
+        for (const auto &str : vec2)
+        {
+            combinedVec.push_back(str);
+        }
+
+        return combinedVec;
+    }
+
+    std::vector<std::string> genderFilter(const std::pair<std::vector<std::string>, std::vector<std::string>> &vec, const std::string &gender)
+    {
+        std::vector<std::string> result;
+        if (gender == "female")
+        {
+            result = vec.first;
+        }
+        else if (gender == "male")
+        {
+            result = vec.second;
+        }
+        else if (gender.empty())
+        {
+            result = combine(vec.first, vec.second);
+        }
+        else
+        {
+            throw std::invalid_argument("Unknown gender");
+        }
+        return result; 
+    }
+
+    //method returns a pair of list of names of healthy users <female, male> 
+    std::pair <std::vector < std::string>, std::vector<std::string>> getHealthyBFPUsersByMethod(const std::string &method)
+    {
+        HealthAssistant*  ha; 
+
+        if (method == "USArmy"){
+            ha = new USNavyMethod();
+        }
+        else if (method == "bmi"){
+            ha = new BmiMethod();
+        }
+        else{
+            std::cout << "Invalid method, please enter 'USArmy' or 'bmi' \n";
+            return {};
+        }
+
+        std::vector<std::string> healthyFemaleUsers;
+        std::vector<std::string> healthyMaleUsers;
+        std::pair<std::vector<std::string>, std::vector<std::string>> healthyUsers;
+
+        std::vector<UserInfo *> &userList = manager.getUserList();
+        for (auto current : userList)
+        {
+            if (current->bfp_category == "normal" && current->gender == "male")
+            {
+                healthyMaleUsers.push_back(current->name);
+            }
+            else if (current->bfp_category == "normal" && current->gender == "female")
+            {
+                healthyFemaleUsers.push_back(current->name);
+            }
+        }
+        healthyUsers = std::make_pair(healthyMaleUsers, healthyFemaleUsers);
+        delete ha;
+
+        return healthyUsers;
+    }
+    // method returns a pair of list of names of UNhealthy users <female, male>
+    std::pair<std::vector<std::string>, std::vector<std::string>> getUnHealthyBFPUsersByMethod(const std::string &method)
+    {
+        HealthAssistant *ha;
+
+        if (method == "USArmy")
+        {
+            ha = new USNavyMethod();
+        }
+        else if (method == "bmi")
+        {
+            ha = new BmiMethod();
+        }
+        else
+        {
+            std::cout << "Invalid method, please enter 'USArmy' or 'bmi' \n";
+            return {};
+        }
+
+        std::vector<std::string> unHealthyFemaleUsers;
+        std::vector<std::string> unHealthyMaleUsers;
+        std::pair<std::vector<std::string>, std::vector<std::string>> unHealthyUsers;
+
+        std::vector<UserInfo *> &userList = manager.getUserList();
+        for (auto current : userList)
+        {
+            if (current->bfp_category == "high" || current->bfp_category == "very high"){
+                if (current-> gender == "female") {
+                    unHealthyFemaleUsers.push_back(current->name);
+                }
+                else {
+                    unHealthyMaleUsers.push_back(current->name);
+                
+                }
+            }
+            
+        }
+        
+        unHealthyUsers = std::make_pair(unHealthyFemaleUsers, unHealthyFemaleUsers); 
+        delete ha;
+
+        return unHealthyUsers;
+    }
+
+};
 
 int main()
     {

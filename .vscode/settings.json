@@ -126,6 +126,8 @@
     "fstream": "cpp",
     "iomanip": "cpp",
     "map": "cpp",
-    "stack": "cpp"
+    "stack": "cpp",
+    "regex": "cpp",
+    "unordered_set": "cpp"
   }
 }
