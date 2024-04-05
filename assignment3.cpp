@@ -31,6 +31,7 @@ struct UserInfo
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <regex>
 
 class UserInfoManager
 {
@@ -63,6 +64,9 @@ public:
     {
         return userList;
     }
+
+
+    // -----------------------------------------------------Find user by username--------------------------------------------------------
     UserInfo *findUserByUsername( const std::string &username)
     {
         auto it = std::find_if(userList.begin(), userList.end(), [&](const UserInfo *user)
@@ -84,61 +88,85 @@ public:
 
         UserInfo *newUser = new UserInfo(); // create new userInfo object
 
-        std::cout << "Please enter your username: \n";
-        std::getline(std::cin, newUser->name);
-
-        std::cout << "Gender: Please specify your gender, input options: male, female.\n";
-        while (true)
+        try
         {
-            std::getline(std::cin, newUser->gender);
-            if (newUser->gender == "male" || newUser->gender == "female")
+            std::cout << "Please enter your username: \n";
+            std::string username;
+            std::getline(std::cin, username);
+            // Check if the username contains only alphanumeric characters
+            if (!std::regex_match(username, std::regex("^[a-zA-Z0-9]+$")))
             {
-                break;
+                throw std::invalid_argument("Username must contain only alphanumeric characters.");
             }
-            std::cout << "Invalid input. Please specify your gender as male or female: ";
+            newUser->name = username;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "UserName Error: " << e.what() << std::endl;
+            
         }
 
-        std::cout << "Age: Enter your age.\n";
-        newUser->age = getValidatedInteger();
+        try{
+            std::cout << "Gender: Please specify your gender, input options: male, female.\n";
+            std::string input; 
+            std::getline(std::cin, input);
+            if (input == "male" || input == "female"){
+                newUser->gender = input;
+                if (newUser->gender == "female") {
+                    std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
+                    newUser->hip = getValidatedDouble();
+                } else{
+                    newUser->hip = 0;
+                } // assign default 0
+            }
+            else{ //invalid inputs, throw exception 
 
-        // Check age validity, exit prrogram if age is not within range
-        if (newUser->age < 20 || newUser->age > 79)
-        {
-            std::cout << "Sorry, we don't have data for age under 20 or over 79.\n";
-            exit(0); // Exit the program
-        }
-
-        std::cout << "Weight: Enter your body weight in kilograms.\n";
-        newUser->weight = getValidatedDouble();
-
-        std::cout << "Waist: Input your waist measurement in centimeters.\n";
-        newUser->waist = getValidatedDouble();
-
-        std::cout << "Neck: Provide your neck measurement in centimeters.\n";
-        newUser->neck = getValidatedDouble();
-
-        std::cout << "Height: Input height measurement in centimeters.\n";
-        newUser->height = getValidatedDouble();
-
-        std::cout << "Lifestyle: Provide information about your current lifestyle: sedentary, moderate (moderately active) or active.\n";
-        while (true)
-        {
-            std::getline(std::cin, newUser->lifestyle);
-            if (newUser->lifestyle == "sedentary" || newUser->lifestyle == "moderate" || newUser->lifestyle == "active")
+                throw std::invalid_argument("Invalid input. Gender must be 'male' or 'female'.");
+            }
+        
+            std::cout << "Age: Enter your age.\n";
+            newUser->age = getValidatedInteger();
+            // Check age validity, throw exception if age is not within range
+            if (newUser->age < 20 || newUser->age > 79)
             {
-                break;
+                throw std::out_of_range("Age must be within the range 20 to 79.");
             }
-            std::cout << "Invalid input. Please specify your lifestyle as sedentary, moderate, or active: ";
+
+            std::cout << "Weight: Enter your body weight in kilograms.\n";
+            newUser->weight = getValidatedDouble();
+
+            std::cout << "Waist: Input your waist measurement in centimeters.\n";
+            newUser->waist = getValidatedDouble();
+
+            std::cout << "Neck: Provide your neck measurement in centimeters.\n";
+            newUser->neck = getValidatedDouble();
+
+            std::cout << "Height: Input height measurement in centimeters.\n";
+            newUser->height = getValidatedDouble();
         }
-        if (newUser->gender == "female") // hip measurement if user is female
+        catch (const std::exception &e)
         {
-            std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
-            newUser->hip = getValidatedDouble();
+            std::cerr <<"Error with your previous input:" <<  e.what() << std::endl;
+        } 
+
+        try
+        {
+            std::string lifestyle;
+            std::cout << "Lifestyle: Provide information about your current lifestyle: sedentary, moderate, or active.\n";
+            std::getline(std::cin, lifestyle);
+            if (lifestyle == "sedentary" || lifestyle == "moderate" || lifestyle == "active")
+            {
+                newUser->lifestyle = lifestyle;
+            }
+            else
+            {
+                throw std::invalid_argument("Invalid input. Please specify your lifestyle as sedentary, moderate, or active.");
+            }
         }
-        else
+        catch (const std::exception &e)
         {
-            newUser->hip = 0;
-        } // assign default 0
+            std::cerr << e.what() << std::endl;
+        }
 
         userList.push_back(newUser);
     };
@@ -319,30 +347,43 @@ public:
     };
 
     // Function to get valid integer input, will keep asking for input until getting valid number
+
+
     int getValidatedInteger()
     {
         int value;
-        while (!(std::cin >> value))
+        std::cin.exceptions(std::ios_base::failbit);
+        try
         {
-            std::cout << "Invalid input. Please enter a valid number: ";
+            std::cin >> value;
             clearInputBuffer();
+            return value;
         }
-        clearInputBuffer();
-        return value;
-    };
+        catch (const std::ios_base::failure &e)
+        {
+            clearInputBuffer();
+            throw std::invalid_argument("Invalid input. Please enter a valid integer.");
+        }
+    }
 
     // Function to get validated double input
+
     double getValidatedDouble()
     {
         double value;
-        while (!(std::cin >> value))
+        std::cin.exceptions(std::ios_base::failbit);
+        try
         {
-            std::cout << "Invalid input. Please enter a valid number: ";
+            std::cin >> value;
             clearInputBuffer();
+            return value;
         }
-        clearInputBuffer();
-        return value;
-    };
+        catch (const std::ios_base::failure &e)
+        {
+            clearInputBuffer();
+            throw std::invalid_argument("Invalid input. Please enter a valid number.");
+        }
+    }
 };
 
 
@@ -467,7 +508,7 @@ protected:
     UserInfoManager &manager;
 
     //--------------------------------------------helper methods--------------------------------
-    
+    //US Navy BFP method helper function 
     std::pair<int, std::string> get_bfp(double waist, double neck, double height, double hip, std::string gender, int age)
     {
         double bfp;
@@ -536,6 +577,8 @@ protected:
         return std::make_pair(static_cast<int>(bfp), category);
     }
 
+
+    // BMI BFP helper function 
     std::pair<int, std::string> get_bfp_bmi(double weight, double height, std::string gender, int age)
     {
 
@@ -595,6 +638,8 @@ protected:
 
         return std::make_pair(static_cast<int>(bfp), category);
     }
+    
+    
     // Helper funtion to get category for BFP thresholds
     std::string getCategory(double bfp, int lowThreshold, int normalThreshold, int highThreshold)
     {
