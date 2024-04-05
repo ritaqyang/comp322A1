@@ -5,6 +5,8 @@ class SomeClass{
 
 };
 
+
+
 class AirCraft{
     public:
         AirCraft(){
@@ -100,4 +102,7 @@ int main(){
     delete pt;
 
     cout<< "================end of everything ================"<<endl;
+
+
+ 
 }
