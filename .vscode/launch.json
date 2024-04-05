@@ -5,8 +5,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/ritayang/comp322A1",
-      "program": "/Users/ritayang/comp322A1/build/Debug/outDebug"
+      "cwd": "/Users/ritayang/comp322A1/exercises",
+      "program": "/Users/ritayang/comp322A1/exercises/build/Debug/outDebug"
     }
   ]
 }
