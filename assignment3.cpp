@@ -85,10 +85,10 @@ public:
     }; 
 
     //--------------------------------------------------add user info --------------------------------------------------------------------------
-    void addUserInfo()
-    {
-        try
-        {
+    void addUserInfo(){
+
+    try{
+
             UserInfo *newUser = new UserInfo();
             std::string input; 
 
@@ -148,13 +148,15 @@ public:
             newUser->lifestyle = lifestyle_input;
 
             userList.push_back(newUser);
+            std::cout << "User information added successfully!\n";
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error occured while calling addUserInfo function in UserInfoManager, Error msg: " << e.what() << std::endl;
+        exit(1);
 
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << "Error occurred while adding user info: " << e.what() << std::endl;
-        }
-    }; 
+    }
+    };
 
     //----------------------------------------------- delete user -----------------------------------------------------------
     void deleteUser(const std::string &username)
@@ -277,8 +279,6 @@ public:
     //------------------------------------------------------write to file ----------------------------------------------------------------
     void writeToFile(const std::string &filename)
     {
-        
-
         try
         {   
             std::ofstream file;
@@ -313,6 +313,7 @@ public:
         catch (const std::exception &e)
         {
             std::cerr << "Error occured while calling writeToFile function in UserInfoManager, Error msg: "<< e.what() << std::endl;
+            exit(1); 
         }
     }
 
@@ -977,6 +978,8 @@ int main()
         ha->getBfp("mary");
         ha->getDailyCalories("mary");
         ha->getMealPrep("mary");
+
+        ha->display("all");
 
         std::cout << "\n>storing current info to a3_user_data1.csv\n\n";
         ha->serialize("a3_user_data1.csv");

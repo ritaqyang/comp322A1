@@ -1,0 +1,9 @@
+john
+maleee
+30
+70
+90
+40
+180
+sedentary
+exit
