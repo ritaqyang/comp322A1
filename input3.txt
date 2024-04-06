@@ -6,6 +6,7 @@ male
 40
 180
 sedentary
+
 jack
 male
 31
@@ -14,15 +15,17 @@ male
 41
 181
 sedentary
+
 mary
 female
-120
+108
 32
 72
 92
 42
 182
 sedentary
+
 john2
 male
 30
@@ -31,6 +34,7 @@ male
 40
 180
 sedentary
+
 jack2
 male
 31
@@ -39,6 +43,7 @@ male
 41
 181
 sedentary
+
 mary2
 female
 98

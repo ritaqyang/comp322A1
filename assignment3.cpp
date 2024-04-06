@@ -74,7 +74,7 @@ public:
     // -----------------------------------------------------Find user by username--------------------------------------------------------
     UserInfo *findUserByUsername( const std::string &username)
     {
-        auto it = std::find_if(userList.begin(), userList.end(), [&](const UserInfo *user)
+        auto it = std::find_if(userList.begin(), userList.end(),[&](const UserInfo *user)
                                { return user->name == username; });
 
         if (it != userList.end())
@@ -90,91 +90,76 @@ public:
     //--------------------------------------------------add user info --------------------------------------------------------------------------
     void addUserInfo()
     {
-
-        UserInfo *newUser = new UserInfo(); // create new userInfo object
-
         try
         {
+            UserInfo *newUser = new UserInfo();
+
             std::cout << "Please enter your username: \n";
             std::string username;
             std::getline(std::cin, username);
-            // Check if the username contains only alphanumeric characters
-            if (!std::regex_match(username, std::regex("^[a-zA-Z0-9]+$")))
-            {
-                throw std::invalid_argument("Username must contain only alphanumeric characters.");
-            }
             newUser->name = username;
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << "UserName Error: " << e.what() << std::endl;
-            
-        }
 
-        try{
             std::cout << "Gender: Please specify your gender, input options: male, female.\n";
-            std::string input; 
+            std::string input;
             std::getline(std::cin, input);
-            if (input == "male" || input == "female"){
-                newUser->gender = input;
-                if (newUser->gender == "female") {
-                    std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
-                    newUser->hip = getValidatedDouble();
-                } else{
-                    newUser->hip = 0;
-                } // assign default 0
-            }
-            else{ //invalid inputs, throw exception 
-
+            if (input != "male" && input != "female")
                 throw std::invalid_argument("Invalid input. Gender must be 'male' or 'female'.");
-            }
-        
-            std::cout << "Age: Enter your age.\n";
-            newUser->age = getValidatedInteger();
-            // Check age validity, throw exception if age is not within range
-            if (newUser->age < 20 || newUser->age > 79)
+            newUser->gender = input;
+
+            if (newUser->gender == "female")
             {
-                throw std::out_of_range("Age must be within the range 20 to 79.");
-            }
-
-            std::cout << "Weight: Enter your body weight in kilograms.\n";
-            newUser->weight = getValidatedDouble();
-
-            std::cout << "Waist: Input your waist measurement in centimeters.\n";
-            newUser->waist = getValidatedDouble();
-
-            std::cout << "Neck: Provide your neck measurement in centimeters.\n";
-            newUser->neck = getValidatedDouble();
-
-            std::cout << "Height: Input height measurement in centimeters.\n";
-            newUser->height = getValidatedDouble();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr <<"Error with your previous input:" <<  e.what() << std::endl;
-        } 
-
-        try
-        {
-            std::string lifestyle;
-            std::cout << "Lifestyle: Provide information about your current lifestyle: sedentary, moderate, or active.\n";
-            std::getline(std::cin, lifestyle);
-            if (lifestyle == "sedentary" || lifestyle == "moderate" || lifestyle == "active")
-            {
-                newUser->lifestyle = lifestyle;
+                std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
+                std::string input;
+                std::getline(std::cin, input);
+                newUser->hip = std::stod(input);
             }
             else
             {
-                throw std::invalid_argument("Invalid input. Please specify your lifestyle as sedentary, moderate, or active.");
+                newUser->hip = 0;
             }
+
+            std::cout << "Age: Enter your age.\n";
+            std::string age_input;
+            std::getline(std::cin, age_input);
+            newUser->age = std::stoi(age_input);
+            if (newUser->age < 20 || newUser->age > 79)
+                throw std::out_of_range("Age must be within the range 20 to 79.");
+
+            std::cout << "Weight: Enter your body weight in kilograms.\n";
+            std::string weight_input;
+            std::getline(std::cin, weight_input);
+            newUser->weight = std::stod(weight_input);
+
+            std::cout << "Waist: Input your waist measurement in centimeters.\n";
+            std::string waist_input;
+            std::getline(std::cin, waist_input);
+            newUser->waist = std::stod(waist_input);
+
+            std::cout << "Neck: Input your neck measurement in centimeters.\n";
+            std::string neck_input;
+            std::getline(std::cin, neck_input);
+            newUser->neck = std::stod(neck_input);
+
+            std::cout << "Height: Input height measurement in centimeters.\n";
+            std::string height_input;
+            std::getline(std::cin, height_input);
+            newUser->height = std::stod(height_input);
+
+            std::cout << "Lifestyle: Provide information about your current lifestyle: sedentary, moderate, or active.\n";
+            std::string lifestyle_input;
+            std::getline(std::cin, lifestyle_input);
+            if (lifestyle_input != "sedentary" && lifestyle_input != "moderate" && lifestyle_input != "active")
+                throw std::invalid_argument("Invalid input. Please specify your lifestyle as sedentary, moderate, or active.");
+            newUser->lifestyle = lifestyle_input;
+
+            userList.push_back(newUser);
+
         }
         catch (const std::exception &e)
         {
-            std::cerr << e.what() << std::endl;
+            std::cerr << "Error occurred while adding user info: " << e.what() << std::endl;
         }
-
-        userList.push_back(newUser);
-    };
+    }; 
 
     //----------------------------------------------- delete user -----------------------------------------------------------
     void deleteUser(const std::string &username)
@@ -366,53 +351,8 @@ public:
         std::cout << "------------------------------------------------\n";
     };
 
-    //----------------------------------------------------helper methods for gathering user input ------------------------------------------------
-    // Function to clear the input buffer
-    void clearInputBuffer()
-    {
-        std::cin.clear();                                                   // Reset any error flags
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore any characters in the input buffer
-    };
 
-    // Function to get valid integer input, will keep asking for input until getting valid number
-
-
-    int getValidatedInteger()
-    {
-        int value;
-        std::cin.exceptions(std::ios_base::failbit);
-        try
-        {
-            std::cin >> value;
-            clearInputBuffer();
-            return value;
-        }
-        catch (const std::ios_base::failure &e)
-        {
-            clearInputBuffer();
-            throw std::invalid_argument("Invalid input. Please enter a valid integer.");
-        }
-    }
-
-    // Function to get validated double input
-    //throws exception if input is not a valid double
-    double getValidatedDouble()
-    {
-        double value;
-        std::cin.exceptions(std::ios_base::failbit);
-        try
-        {
-            std::cin >> value;
-            clearInputBuffer();
-            return value;
-        }
-        catch (const std::ios_base::failure &e)
-        {
-            clearInputBuffer();
-            throw std::invalid_argument("Invalid input. Please enter a valid double.");
-        }
-    }
-};
+}; //end of UserInfoManager class
 
 
 // HealthAssistant class
@@ -741,8 +681,7 @@ public:
         std::pair<int, std::string> bfp = get_bfp_bmi(user->weight, user->height, user->gender, user->age); 
         user->bfp = bfp.first;
         user->bfp_category = bfp.second;
-    }
-    
+    };
 }; 
                
 
@@ -760,8 +699,10 @@ public:
 
     // -----------------------------------GetHealthyUsers -------------------------------------------
     //returns a vector contaitning all normal bfp 
-    //method can be US army or bmi, if "all" then both methods should output healthy 
-    std::vector<std::string> getHealthyUsers(const std::string &method, const std::string &gender){
+    //method can be US army or bmi, if "all" then both methods should output healthy
+    
+    std::vector<std::string> getHealthyUsers(const std::string &method, const std::string &gender)
+    {
         std::pair<std::vector<std::string>, std::vector<std::string>> Navy; 
         std::pair<std::vector<std::string>, std::vector<std::string>> Bmi;
         std::vector<std::string> result; 
@@ -791,8 +732,7 @@ public:
         }
             
         return result;
-    }; 
-
+    };
 
     // ------------------------------------GetUnfitUsers method ---------------------------------------------------------------
     std::vector<std::string> getUnfitUsers(const std::string &method, const std::string &gender){
@@ -900,7 +840,7 @@ private:
             }
         }
         return result;
-    }
+    };
 
     //  ----------------------------Method to combine two vector of strings ----------------------------
     std::vector<std::string> combine(const std::vector<std::string> &vec1, const std::vector<std::string> &vec2)
@@ -920,7 +860,7 @@ private:
         }
 
         return combinedVec;
-    }
+    };
 
     std::vector<std::string> genderFilter(const std::pair<std::vector<std::string>, std::vector<std::string>> &vec, const std::string &gender)
     {
@@ -941,23 +881,19 @@ private:
         {
             throw std::invalid_argument("Unknown gender");
         }
-        return result; 
-    }
+        return result;
+    };
 
     //method returns a pair of list of names of healthy users <female, male> 
     std::pair <std::vector < std::string>, std::vector<std::string>> getHealthyBFPUsersByMethod(const std::string &method)
     {
         HealthAssistant*  ha; 
 
-        if (method == "USArmy"){
+        if (method == "UsArmy"){
             ha = new USNavyMethod();
         }
         else if (method == "bmi"){
             ha = new BmiMethod();
-        }
-        else{
-            std::cout << "Invalid method, please enter 'USArmy' or 'bmi' \n";
-            return {};
         }
 
         std::vector<std::string> healthyFemaleUsers;
@@ -1029,16 +965,16 @@ private:
 
 int main()
     {
-        HealthAssistant* ha = new USNavyMethod(); 
-        ha->getUserDetail();
-        ha->getUserDetail();
-        ha->getUserDetail();
-        std::cout << "\n>displaying john's health profile\n\n";
-        ha->display("john");
+        HealthAssistant* ha = new USNavyMethod();
+        std::string userInput; 
 
-        std::cout << "\n>>displaying all user health profile\n\n";
-        ha->display("all");
-        ha->serialize("user_data.csv");
+        std::cout << "\n>Getting user input from std until exit \n\n";
+        while (true){
+            ha->getUserDetail();
+            std::getline(std::cin, userInput);
+            if(userInput == "exit"){break; }
+        }
+
 
         std::cout << "\n>getting john, jack, mary's bfp, daily calories, mealprep info\n\n";
         ha->getBfp("john");
@@ -1051,8 +987,15 @@ int main()
         ha->getDailyCalories("mary");
         ha->getMealPrep("mary");
 
-        std::cout << "\n>storing current info to user_data2.csv\n\n";
-        ha->serialize("user_data2.csv");
+        std::cout << "\n>storing current info to a3_user_data1.csv\n\n";
+        ha->serialize("a3_user_data1.csv");
+        delete ha; 
 
-    
-}
+        UserStats stat; 
+        stat.getHealthyUsers("bmi", "female"); 
+        stat.getFullStats();
+
+
+        delete ha;
+    };
+
