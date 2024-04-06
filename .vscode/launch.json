@@ -1,10 +1,11 @@
 {
   "configurations": [
+    
     {
       "name": "C/C++ Runner: Debug Session",
       "type": "lldb",
       "request": "launch",
-      "args": [],
+      "args": ["-std=c++11"], // Add the flag to enable C++11 support
       "cwd": "/Users/ritayang/comp322A1/exercises",
       "program": "/Users/ritayang/comp322A1/exercises/build/Debug/outDebug"
     }

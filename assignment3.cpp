@@ -9,13 +9,12 @@
 #include <regex>
 #include <unordered_set>
 
-
-//Assignment 3 Improvements:
-// 1. Using vector instead of linkedlist to manage users
-// 2. Exception handling for user inputs / age range / reading + writing file (file not found, empty file)
-// 3. HealthAssitant interface, 2 implmenting subclasses (different BFP methods) 
-// 4. new class UserStats that provide stats about users' health 
-
+// g++ -std=c++11 assignment3.cpp -o c3
+// Assignment 3 Improvements:
+//  1. Using vector instead of linkedlist to manage users
+//  2. Exception handling for user inputs / age range / reading + writing file (file not found, empty file)
+//  3. HealthAssitant interface, 2 implmenting subclasses (different BFP methods)
+//  4. new class UserStats that provide stats about users' health
 
 struct UserInfo
 {
@@ -54,6 +53,7 @@ private:
         {
             delete user;
         }
+        userList.clear();
     }
 
 public:
@@ -74,18 +74,15 @@ public:
     // -----------------------------------------------------Find user by username--------------------------------------------------------
     UserInfo *findUserByUsername( const std::string &username)
     {
-        auto it = std::find_if(userList.begin(), userList.end(),[&](const UserInfo *user)
-                               { return user->name == username; });
-
-        if (it != userList.end())
-        {
-            return *it; // Return pointer to the found user
+        for (auto it = userList.begin(); it != userList.end(); ++it){
+            if ((*it)->name == username){
+                return *it;
+            }
         }
-        else
-        {
-            return nullptr; // Return nullptr if user not found
-        }
-    }
+        
+        return nullptr; // Return nullptr if user not found
+       
+    }; 
 
     //--------------------------------------------------add user info --------------------------------------------------------------------------
     void addUserInfo()
@@ -93,14 +90,13 @@ public:
         try
         {
             UserInfo *newUser = new UserInfo();
+            std::string input; 
 
             std::cout << "Please enter your username: \n";
-            std::string username;
-            std::getline(std::cin, username);
-            newUser->name = username;
+            std::getline(std::cin, input);
+            newUser->name = input;
 
             std::cout << "Gender: Please specify your gender, input options: male, female.\n";
-            std::string input;
             std::getline(std::cin, input);
             if (input != "male" && input != "female")
                 throw std::invalid_argument("Invalid input. Gender must be 'male' or 'female'.");
@@ -109,7 +105,6 @@ public:
             if (newUser->gender == "female")
             {
                 std::cout << "Hip Measurement: Enter your hip measurement in centimeters.\n";
-                std::string input;
                 std::getline(std::cin, input);
                 newUser->hip = std::stod(input);
             }
@@ -703,8 +698,8 @@ public:
     
     std::vector<std::string> getHealthyUsers(const std::string &method, const std::string &gender)
     {
-        std::pair<std::vector<std::string>, std::vector<std::string>> Navy; 
-        std::pair<std::vector<std::string>, std::vector<std::string>> Bmi;
+        std::pair<std::vector<std::string>, std::vector<std::string> > Navy; 
+        std::pair<std::vector<std::string>, std::vector<std::string> > Bmi;
         std::vector<std::string> result; 
 
         if (method == "all"){
@@ -736,8 +731,8 @@ public:
 
     // ------------------------------------GetUnfitUsers method ---------------------------------------------------------------
     std::vector<std::string> getUnfitUsers(const std::string &method, const std::string &gender){
-        std::pair<std::vector<std::string>, std::vector<std::string>> Navy;
-        std::pair<std::vector<std::string>, std::vector<std::string>> Bmi;
+        std::pair<std::vector<std::string>, std::vector<std::string> > Navy;
+        std::pair<std::vector<std::string>, std::vector<std::string> > Bmi;
         std::vector<std::string> result;
 
         if (method == "all"){
@@ -779,8 +774,8 @@ public:
         
         int totalMaleUsers = 0;
         int totalFemaleUsers = 0;
-        std::pair<std::vector<std::string>, std::vector<std::string>> Navy = getHealthyBFPUsersByMethod("UsArmy"); 
-        std::pair<std::vector<std::string>, std::vector<std::string>> Bmi = getHealthyBFPUsersByMethod("bmi");
+        std::pair<std::vector<std::string>, std::vector<std::string> > Navy = getHealthyBFPUsersByMethod("UsArmy"); 
+        std::pair<std::vector<std::string>, std::vector<std::string> > Bmi = getHealthyBFPUsersByMethod("bmi");
 
         
         int totalHealthyFemalesBmi = Bmi.first.size(); 
@@ -862,7 +857,7 @@ private:
         return combinedVec;
     };
 
-    std::vector<std::string> genderFilter(const std::pair<std::vector<std::string>, std::vector<std::string>> &vec, const std::string &gender)
+    std::vector<std::string> genderFilter(const std::pair<std::vector<std::string>, std::vector<std::string> > &vec, const std::string &gender)
     {
         std::vector<std::string> result;
         if (gender == "female")
@@ -885,7 +880,7 @@ private:
     };
 
     //method returns a pair of list of names of healthy users <female, male> 
-    std::pair <std::vector < std::string>, std::vector<std::string>> getHealthyBFPUsersByMethod(const std::string &method)
+    std::pair <std::vector < std::string>, std::vector<std::string> > getHealthyBFPUsersByMethod(const std::string &method)
     {
         HealthAssistant*  ha; 
 
@@ -898,7 +893,7 @@ private:
 
         std::vector<std::string> healthyFemaleUsers;
         std::vector<std::string> healthyMaleUsers;
-        std::pair<std::vector<std::string>, std::vector<std::string>> healthyUsers;
+        std::pair<std::vector<std::string>, std::vector<std::string> > healthyUsers;
 
         std::vector<UserInfo *> &userList = manager.getUserList();
         for (auto current : userList)
@@ -918,7 +913,7 @@ private:
         return healthyUsers;
     }
     // method returns a pair of list of names of UNhealthy users <female, male>
-    std::pair<std::vector<std::string>, std::vector<std::string>> getUnHealthyBFPUsersByMethod(const std::string &method)
+    std::pair<std::vector<std::string>, std::vector<std::string> > getUnHealthyBFPUsersByMethod(const std::string &method)
     {
         HealthAssistant *ha;
 
@@ -930,15 +925,11 @@ private:
         {
             ha = new BmiMethod();
         }
-        else
-        {
-            std::cout << "Invalid method, please enter 'USArmy' or 'bmi' \n";
-            return {};
-        }
+    
 
         std::vector<std::string> unHealthyFemaleUsers;
         std::vector<std::string> unHealthyMaleUsers;
-        std::pair<std::vector<std::string>, std::vector<std::string>> unHealthyUsers;
+        std::pair<std::vector<std::string>, std::vector<std::string> > unHealthyUsers;
 
         std::vector<UserInfo *> &userList = manager.getUserList();
         for (auto current : userList)
@@ -995,7 +986,5 @@ int main()
         stat.getHealthyUsers("bmi", "female"); 
         stat.getFullStats();
 
-
-        delete ha;
-    };
+    }
 
