@@ -701,7 +701,8 @@ public:
     {
         std::pair<std::vector<std::string>, std::vector<std::string> > Navy; 
         std::pair<std::vector<std::string>, std::vector<std::string> > Bmi;
-        std::vector<std::string> result; 
+        std::vector<std::string> result;
+        std::cout << "Getting healthy users...Method: " << method << "Gender :" << gender << std::endl;
 
         if (method == "all"){
             Navy = getHealthyBFPUsersByMethod("USArmy");
@@ -735,6 +736,8 @@ public:
         std::pair<std::vector<std::string>, std::vector<std::string> > Navy;
         std::pair<std::vector<std::string>, std::vector<std::string> > Bmi;
         std::vector<std::string> result;
+
+        std::cout << "Getting unfit users...Method: " << method  << "Gender :" << gender <<std::endl;
 
         if (method == "all"){
             Navy = getUnHealthyBFPUsersByMethod("USArmy"); //use helper method twice for both methods
@@ -957,6 +960,7 @@ private:
 
 int main()
     {
+        std::cout << "\n>Creating a new instance of USNavyMethod\n\n";
         HealthAssistant* ha = new USNavyMethod();
         std::string userInput; 
 
@@ -981,13 +985,61 @@ int main()
 
         ha->display("all");
 
-        std::cout << "\n>storing current info to a3_user_data1.csv\n\n";
-        ha->serialize("a3_user_data1.csv");
+        std::cout << "\n> mass computing all users\n\n";
+        ha->massCompute();
+
+        std::cout << "\n> Deletion test:  displaying all users before deleting john, jack, mary\n\n";
+
+        ha->display("all");
+
+        ha->deleteUser("john");
+        ha->deleteUser("jack");
+        ha->deleteUser("mary");
+
+        std::cout << "\n> Displaying all users after deleting john, jack, mary\n\n";
+        ha->display("all");
+
+        std::cout << "\n>storing current info to us_user_data.csv\n\n";
+        ha->serialize("us_user_data.csv");
         delete ha; 
 
-        UserStats stat; 
-        stat.getHealthyUsers("bmi", "female"); 
-        stat.getFullStats();
 
+
+
+        std::cout << "\n > Creating a new instance of BmiMethod\n\n";
+        ha = new BmiMethod();
+
+        std::cout << "\n>Getting user input from std until exit \n\n";
+        while (true){
+            ha->getUserDetail();
+            std::getline(std::cin, userInput);
+            if(userInput == "exit"){break; }
+        }
+
+
+        std::cout << "\n> mass computing all users\n\n";
+        ha->massCompute();
+
+        std::cout << "\n> Deletion test:  displaying all users before deleting jack\n\n";
+
+        ha->display("all");
+
+        ha->deleteUser("jack");
+
+        std::cout << "\n> Displaying all users after deleting jack\n\n";
+        ha->display("all");
+
+        std::cout << "\n>storing current info to bmi_user_data.csv\n\n";
+        ha->serialize("bmi_user_data.csv");
+        delete ha; 
+
+        std::cout << "\n>Creating a new instance of UserStats\n\n";
+
+        UserStats stat; 
+        stat.getHealthyUsers("bmi", "female");
+        stat.getHealthyUsers("USArmy", "female");
+        stat.getHealthyUsers("all", "female"); 
+        stat.getUnfitUsers("USArmy", "female");
+        stat.getFullStats();
     }
 
