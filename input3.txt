@@ -1,16 +1,16 @@
 john
 male
 30
-70
-90
-40
-180
+200
+100
+41
+150
 sedentary
 
 jack
 male
 31
-71
+60
 91
 41
 181
@@ -57,7 +57,7 @@ exit
 john
 male
 30
-70
+200
 90
 40
 180
@@ -66,7 +66,7 @@ sedentary
 jack
 male
 31
-71
+55
 91
 41
 181

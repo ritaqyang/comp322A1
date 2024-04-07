@@ -490,6 +490,7 @@ protected:
         if (gender == "male")
         {
             bfp = 495 / (1.0324 - 0.19077 * std::log10(waist - neck) + 0.15456 * std::log10(height)) - 450;
+            std::cout << "bfp is " << bfp << std::endl;
         }
         else
         { // female (inputs were already validated when entering, so only female and male inputs)
@@ -499,7 +500,7 @@ protected:
 
         // Get the thresholds first as variables, so it's more visualy clear for future uses and changes to the data
 
-        int lowThreshold, normalThreshold, highThreshold;
+        double lowThreshold, normalThreshold, highThreshold;
 
         if (gender == "female")
         {
@@ -558,53 +559,12 @@ protected:
         double bfp = weight / (h * h); //using bmi for calculating bfp
         std::string category;
 
-        // For each age range, use helper function to get category according to threshholds
-        // Get the thresholds first as variables, so it's more visualy clear for future uses and changes to the data
-
-        int lowThreshold, normalThreshold, highThreshold;
-
-        if (gender == "female")
-        {
-            if (age <= 39)
-            { // 20-39 age range
-                lowThreshold = 21;
-                normalThreshold = 33;
-                highThreshold = 39;
-            }
-            else if (age <= 59)
-            { // 40-59 age range
-                lowThreshold = 23;
-                normalThreshold = 34;
-                highThreshold = 40;
-            }
-            else
-            { // 60+ age range
-                lowThreshold = 24;
-                normalThreshold = 36;
-                highThreshold = 42;
-            }
-        }
-        else
-        {
-            if (age <= 39)
-            { // 20-39 age range
-                lowThreshold = 8;
-                normalThreshold = 20;
-                highThreshold = 25;
-            }
-            else if (age <= 59)
-            { // 40-59 age range
-                lowThreshold = 11;
-                normalThreshold = 22;
-                highThreshold = 28;
-            }
-            else
-            { // 60+ age range
-                lowThreshold = 13;
-                normalThreshold = 25;
-                highThreshold = 30;
-            }
-        }
+        // For adults 20 years old and older, BMI is interpreted using 
+        //standard weight status categories. 
+        //These categories are the same for men and women of all body types and ages.
+        double lowThreshold = 18.5; 
+        double normalThreshold = 24.9;
+        double  highThreshold = 29.9; 
 
         category = getCategory(bfp, lowThreshold, normalThreshold, highThreshold);
 
@@ -613,7 +573,7 @@ protected:
     
     
     // Helper funtion to get category for BFP thresholds
-    std::string getCategory(double bfp, int lowThreshold, int normalThreshold, int highThreshold)
+    std::string getCategory(double bfp, double lowThreshold, double normalThreshold, double highThreshold)
     {
 
         if (bfp < lowThreshold)
@@ -642,7 +602,9 @@ class USNavyMethod : public HealthAssistant
 {
 public:
     USNavyMethod(){};
-    ~USNavyMethod(){};
+    ~USNavyMethod(){
+        std::cout << "Destructor called for USNavyMethod\n";
+    };
   
     void getBfp(std::string username) {
         UserInfo *user = manager.findUserByUsername(username);
@@ -774,6 +736,12 @@ public:
             throw std::invalid_argument("Invalid method, please enter 'USArmy' or 'bmi' or 'all' \n");
         }
 
+        std::cout << "Unhealthy users are below: " << std::endl;
+        for (const std::string &str : result)
+        {
+            std::cout << str << std::endl;
+        }
+
         return result;
 
     }; 
@@ -783,7 +751,7 @@ public:
         
         int totalMaleUsers = 0;
         int totalFemaleUsers = 0;
-        std::pair<std::vector<std::string>, std::vector<std::string> > Navy = getHealthyBFPUsersByMethod("UsArmy"); 
+        std::pair<std::vector<std::string>, std::vector<std::string> > Navy = getHealthyBFPUsersByMethod("USArmy"); 
         std::pair<std::vector<std::string>, std::vector<std::string> > Bmi = getHealthyBFPUsersByMethod("bmi");
 
         
@@ -966,7 +934,7 @@ private:
             
         }
         
-        unHealthyUsers = std::make_pair(unHealthyFemaleUsers, unHealthyFemaleUsers); 
+        unHealthyUsers = std::make_pair(unHealthyFemaleUsers, unHealthyMaleUsers); 
         delete ha;
 
         return unHealthyUsers;
@@ -976,9 +944,11 @@ private:
 
 int main()
     {
+
+        
         std::cout << "\n>Creating a new instance of USNavyMethod\n\n";
         HealthAssistant* ha = new USNavyMethod();
-        std::string userInput; 
+        std::string userInput;
 
         std::cout << "\n>Getting user input from std until exit \n\n";
         while (true){
@@ -1017,8 +987,8 @@ int main()
         std::cout << "\n> Displaying all users after deleting john, jack, mary\n\n";
         ha->display("all");
 
-        
-        delete ha; 
+
+        delete ha;
 
 
 
@@ -1048,16 +1018,20 @@ int main()
         std::cout << "\n> Displaying all users after deleting jack\n\n";
         ha->display("all");
 
-        
-        delete ha; 
+
+        delete ha;
+
+    
 
         std::cout << "\n>Creating a new instance of UserStats\n\n";
 
         UserStats stat; 
-        stat.getHealthyUsers("bmi", "female");
+        stat.getHealthyUsers("bmi", "male");
         stat.getHealthyUsers("USArmy", "female");
-        //stat.getHealthyUsers("all", "female"); 
-        //stat.getUnfitUsers("USArmy", "female");
-        //stat.getFullStats();
+        stat.getHealthyUsers("all", "male"); 
+        stat.getUnfitUsers("USArmy", "male");
+        stat.getUnfitUsers("all",""); 
+        stat.getUnfitUsers("bmi",""); 
+        stat.getFullStats();
     }
 
