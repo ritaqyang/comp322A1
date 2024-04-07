@@ -42,11 +42,9 @@ class UserInfoManager
 private:
     std::vector<UserInfo *> userList; //UserInfo is private member 
 
-    // Private constructor to enforce singleton pattern
-    UserInfoManager() {}
-    UserInfoManager(UserInfoManager &);           // private copy constructor
-    UserInfoManager operator=(UserInfoManager &); // private assignment operator
-    // Private destructor, delete allocated memory
+
+public:
+    UserInfoManager(){};
     ~UserInfoManager()
     {
         for (auto user : userList)
@@ -55,16 +53,6 @@ private:
         }
         userList.clear();
     }
-
-public:
-    // Static method to get the singleton instance
-    static UserInfoManager &getInstance()
-    {
-        static UserInfoManager instance;
-        return instance;
-    }
-
-    // Getter method for userList
     std::vector<UserInfo *> &getUserList()
     {
         return userList;
@@ -360,8 +348,16 @@ class HealthAssistant
 {
 
 public:
-    HealthAssistant() : manager(UserInfoManager::getInstance()){}; // constructor obtains singleton instance of UserInfoManager
-    virtual ~HealthAssistant(){};                                  // virtual since the class will be inherited 
+   
+    HealthAssistant(){};
+    virtual ~HealthAssistant(){
+        std::cout << "Destructor called for HealthAssistant\n";
+    };                                  // virtual since the class will be inherited
+    // Getter method to access UserManager object
+    UserInfoManager &getUserManager()
+    {
+        return manager;
+    }
 
     //-----------------------wrapper methods ----------------------------------------------------------------
 
@@ -481,7 +477,7 @@ public:
     };
 
 protected:
-    UserInfoManager &manager;
+    UserInfoManager manager;
 
     //--------------------------------------------helper methods--------------------------------
     //US Navy BFP method helper function 
@@ -645,6 +641,8 @@ protected:
 class USNavyMethod : public HealthAssistant
 {
 public:
+    USNavyMethod(){};
+    ~USNavyMethod(){};
   
     void getBfp(std::string username) {
         UserInfo *user = manager.findUserByUsername(username);
@@ -664,7 +662,10 @@ public:
 class BmiMethod : public HealthAssistant
 {
 public:
-   
+   BmiMethod(){};
+   ~BmiMethod(){
+    std::cout << "Destructor called for BmiMethod\n";
+   };
     //Alternative implementation of getBfp, using BMI formula 
     void getBfp(std::string username)
     {
@@ -688,10 +689,8 @@ class UserStats
 {
 
 public:
-    UserStats() : manager(UserInfoManager::getInstance()){}; // constructor obtains singleton instance of UserInfoManager
-
-    // Method to add a user's health statistics
-    void addUserStats(const std::string &name, double bfp);
+    UserStats(){}; 
+    ~UserStats(){};
 
     // -----------------------------------GetHealthyUsers -------------------------------------------
     //returns a vector contaitning all normal bfp 
@@ -727,7 +726,13 @@ public:
         else{
             throw std::invalid_argument("Invalid method, please enter 'USArmy' or 'bmi' or 'all' \n");
         }
-            
+
+        std::cout << "healthy users are below: " << std::endl;
+        for (const std::string &str : result)
+        {
+            std::cout << str << std::endl;
+        }
+
         return result;
     };
 
@@ -788,15 +793,21 @@ public:
         int totalHealthyMalesUsArmy = Navy.second.size();
 
         int totalHealthyUsersBmi = totalHealthyFemalesBmi  + totalHealthyMalesBmi;
-        int totalHealthyUsersUsArmy = totalHealthyFemalesUsArmy + totalHealthyMalesUsArmy; 
+        int totalHealthyUsersUsArmy = totalHealthyFemalesUsArmy + totalHealthyMalesUsArmy;
 
+        HealthAssistant *ha;
+        ha = new USNavyMethod();
+        ha->massLoadAndCompute("us_user_data.csv");
+        
         // Calculate statistics
-        for (const auto *user : manager.getUserList())
+        for (const auto *user : ha->getUserManager().getUserList())
         {
             (user->gender == "male")? totalMaleUsers += 1 : totalFemaleUsers += 1;
             
         }
         int totalUsers = totalMaleUsers + totalFemaleUsers;
+
+        delete ha; 
 
         // Calculate percentages
         double percentageMaleUsers = static_cast<double>(totalMaleUsers) / totalUsers * 100;
@@ -821,8 +832,6 @@ public:
     };
 
 private:
-    UserInfoManager &manager; 
-
     //--------------------------------helper methods for UserStats class --------------------------------
 
     // ---------------------------Method to get the intersection of two vectors--------------------------------
@@ -886,20 +895,27 @@ private:
     //method returns a pair of list of names of healthy users <female, male> 
     std::pair <std::vector < std::string>, std::vector<std::string> > getHealthyBFPUsersByMethod(const std::string &method)
     {
+
+        std::cout << "getHealthyBFPUsers Helper method is called with method: " << method << std::endl;
         HealthAssistant*  ha; 
 
-        if (method == "UsArmy"){
+        if (method == "USArmy"){
             ha = new USNavyMethod();
+            ha->massLoadAndCompute("us_user_data.csv");
         }
         else if (method == "bmi"){
             ha = new BmiMethod();
+            ha->massLoadAndCompute("bmi_user_data.csv");
         }
 
         std::vector<std::string> healthyFemaleUsers;
         std::vector<std::string> healthyMaleUsers;
         std::pair<std::vector<std::string>, std::vector<std::string> > healthyUsers;
 
-        std::vector<UserInfo *> &userList = manager.getUserList();
+        if (ha ==nullptr) {
+            std::cout << "Error: Ha is null pointer" << std::endl;
+        }
+        std::vector<UserInfo *> &userList = ha->getUserManager().getUserList();
         for (auto current : userList)
         {
             if (current->bfp_category == "normal" && current->gender == "male")
@@ -911,7 +927,7 @@ private:
                 healthyFemaleUsers.push_back(current->name);
             }
         }
-        healthyUsers = std::make_pair(healthyMaleUsers, healthyFemaleUsers);
+        healthyUsers = std::make_pair(healthyFemaleUsers, healthyMaleUsers);
         delete ha;
 
         return healthyUsers;
@@ -935,7 +951,7 @@ private:
         std::vector<std::string> unHealthyMaleUsers;
         std::pair<std::vector<std::string>, std::vector<std::string> > unHealthyUsers;
 
-        std::vector<UserInfo *> &userList = manager.getUserList();
+        std::vector<UserInfo *> &userList = ha->getUserManager().getUserList();
         for (auto current : userList)
         {
             if (current->bfp_category == "high" || current->bfp_category == "very high"){
@@ -987,6 +1003,8 @@ int main()
 
         std::cout << "\n> mass computing all users\n\n";
         ha->massCompute();
+        std::cout << "\n>storing current info to us_user_data.csv before any deletion \n\n";
+        ha->serialize("us_user_data.csv");
 
         std::cout << "\n> Deletion test:  displaying all users before deleting john, jack, mary\n\n";
 
@@ -999,8 +1017,7 @@ int main()
         std::cout << "\n> Displaying all users after deleting john, jack, mary\n\n";
         ha->display("all");
 
-        std::cout << "\n>storing current info to us_user_data.csv\n\n";
-        ha->serialize("us_user_data.csv");
+        
         delete ha; 
 
 
@@ -1019,6 +1036,8 @@ int main()
 
         std::cout << "\n> mass computing all users\n\n";
         ha->massCompute();
+        std::cout << "\n>storing current info to bmi_user_data.csv before any deletion \n\n";
+        ha->serialize("bmi_user_data.csv");
 
         std::cout << "\n> Deletion test:  displaying all users before deleting jack\n\n";
 
@@ -1029,8 +1048,7 @@ int main()
         std::cout << "\n> Displaying all users after deleting jack\n\n";
         ha->display("all");
 
-        std::cout << "\n>storing current info to bmi_user_data.csv\n\n";
-        ha->serialize("bmi_user_data.csv");
+        
         delete ha; 
 
         std::cout << "\n>Creating a new instance of UserStats\n\n";
@@ -1038,8 +1056,8 @@ int main()
         UserStats stat; 
         stat.getHealthyUsers("bmi", "female");
         stat.getHealthyUsers("USArmy", "female");
-        stat.getHealthyUsers("all", "female"); 
-        stat.getUnfitUsers("USArmy", "female");
-        stat.getFullStats();
+        //stat.getHealthyUsers("all", "female"); 
+        //stat.getUnfitUsers("USArmy", "female");
+        //stat.getFullStats();
     }
 
